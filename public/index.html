@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WebMMO by JustinVanOort</title>
+    <!-- let's initialize firebase features -->
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-app.js"></script>
+    <!-- If you enabled Analytics in your project, add the Firebase SDK for Analytics -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-analytics.js"></script>
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-functions.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-messaging.js"></script>
+  </head>
+
+<body>
+<canvas id="myCanvas" width="600" height="600"></canvas>
+<!-- actual game code -->
+<script>
+//Globals
+//Rendering
+let lastRender;
+let f = 0;
+let t = 0
+let graphics;
+//Colour Palette:
+var palette = {"a": "#264653", "b": "#2a9d8f", "c": "#e9c46a", "d": "#f4a261", "e": "#e76f51"}
+
+//Initialize the game.
+init();
+
+//Do any game initialization here.
+function init() {
+  // Get our drawing elements.
+  let canvas = document.getElementById("myCanvas");
+  graphics = canvas.getContext("2d");
+  // Start the game loop
+  lastRender = 0
+  window.requestAnimationFrame(loop)
+  // Do any other init work
+  createWorld()
+}
+
+//game loop variable.
+function loop(timestamp) {
+  let progress = timestamp - lastRender
+
+  update(progress)
+  draw()
+  
+  lastRender = timestamp
+  window.requestAnimationFrame(loop)
+}
+
+
+//actually draw the game
+function draw() {
+
+}
+
+//update the game.
+function update(progress) {
+//Keep track of the game's frames.
+//Turn the frame's into time rounded to 4 decimals.
+f+=progress;
+t=f/1000;
+t=t.toFixed(4);
+
+}
+
+
+//Create the world.
+function createWorld()
+{
+  drawGrid(0,0,600,600,25);
+  drawRect(50,0,25,25,palette.b);
+
+}
+
+//Draws a grid with at x and y of a certain size w and h, with a cellsize of s.
+function drawGrid(x, y, w, h, s)
+{
+  var amount = {x:w/s, y:h/s};
+  for(var ix = 0; ix <= amount.x; ix++) {
+    for(var iy = 0; iy <= amount.y; iy++) {
+      //draw horizontal line
+      drawLine(x,y+iy*s,w,iy*s);
+      //draw vertical line
+      drawLine(x+ix*s,y,x+ix*s,h);
+    }
+  }
+}
+
+//Draws a line starting from x1 and y2 to x2 and y2
+function drawLine(x1, y1, x2, y2) {
+  graphics.beginPath();
+  graphics.moveTo(x1,y1);
+  graphics.lineTo(x2,y2);
+  graphics.stroke();
+}
+
+//Draws a grid from x1 and y1 to x2 and y2 in the colour c(hex string)
+function drawRect(x1,y1,x2,y2,c) {
+graphics.fillStyle = c;
+graphics.fillRect(x1,y2,x2-x1,y2-y1);
+graphics.fillStyle = "#FFFFF"
+}
+
+
+</script>
+    
+</body>
+</html>
