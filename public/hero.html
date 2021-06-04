@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WebMMO by JustinVanOort</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css">
+  </link>
+  <!-- let's initialize firebase features -->
+  <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+  <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-app.js"></script>
+  <!-- If you enabled Analytics in your project, add the Firebase SDK for Analytics -->
+  <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-analytics.js"></script>
+  <!-- Add Firebase products that you want to use -->
+  <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-functions.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-messaging.js"></script>
+  <script src="config.js"></script>
+  <script src="common.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/ui/4.7.3/firebase-ui-auth.js"></script>
+  <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.7.3/firebase-ui-auth.css" />
+  <!-- Font used by this page-->
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
+    crossorigin="anonymous"></script>
+  <script>
+    var userObject;
+    var userID;
+    $(document).ready(function () {
+      $("body").tooltip({ selector: '[data-toggle=tooltip]' });
+    });
+    firebase.auth().onAuthStateChanged(user => {
+      if (!user) {
+        //If the user is not logged in, move to the log-in screen.
+        window.location = 'index.html';
+      }
+      else {
+        //If we have confirmed that the user is logged in, start the game.
+        userObject = user;
+        userID = user.uid;
+        //Check if our user has already selected their class.
+        db.collection("users").doc(userID).get().then((doc) => {
+          if(doc.data().class) window.location = 'name.html'
+        })
+      }
+    });
+  </script>
+
+
+</head>
+<!-- Game code-->
+
+<body>
+  <div class="game-container">
+    <div class="toppane">WebMMO</div>
+    <div class="leftpane"></div>
+    <div class="middlepane">
+      <h1> WebMMO Character Creation </h1>
+      <h4 class="lead"> Welcome fresh adventurer! You are about to embark on a great adventure in the world of WebMMO.</h4>
+      <small> (DM me a good world name pls)</small>
+      <p>
+      <h5>The world of WebMMO is filled with plenty of adventurers just like you, looking for mischief and good stories to tell.
+      But before you begin, you must make a Hero.</h5>
+      <h4>Start by picking a class:</h4>
+      <small><b>Choose carefully! You can't change this later</b></small>
+    </p>
+    <div class="row">
+      <div class="col">
+          <div class="card card-body">
+            The Warrior uses pure strength to solve any situation. Ran out on the bar tap and getting arrested? Punch the guard. Getting stopped by highwaymen who want your gold? Stab them. Life is simple, as long as you are as hard as rock. Which you are. Expect to stab a lot of things.
+            <small><b>Choose carefully! You can't change this later</b></small>
+            <p></p><button class="btn btn-primary" onClick='selectClass("Warrior")' type="button">Select The Warrior</button>
+          </div>
+      </div>
+      <div class="col">
+          <div class="card card-body">
+            The Ranger is best friends with their pet in the first place, and their ranged weapon secondly. They bond with any type of creature and fight in battle by commanding their pet and picking off targets from a distance.
+            <small><b>Choose carefully! You can't change this later</b></small>
+            <p></p><button class="btn btn-primary" onClick='selectClass("Ranger")' type="button">Select The Ranger</button>
+          </div>
+      </div>
+      <div class="col">
+          <div class="card card-body">
+            The Priest uses holy or unholy powers to smite their foes on the battlefield. They wield blunt weapons to smack anyone who gets to close. Casting spells is the preferred manner of dealing with foes though, and there are plenty of spells to pick from. 
+            <small><b>Choose carefully! You can't change this later</b></small>
+            <p></p><button class="btn btn-primary" onClick='selectClass("Priest")' type="button">Select The Priest</button>
+          </div>
+      </div>
+    </div>
+    </div>
+    <div class="rightpane">
+    </div>
+  </div>
+</body>
+  <!-- actual game code -->
+  <script>
+
+    //make a new entry in the users table with our id and select the class.
+    function selectClass(selectedClass) {
+    db.collection("users").doc(userID).set({
+    class: selectedClass
+})
+.then(() => {
+    window.location = "name.html"
+})
+    
+    }
+
+  </script>
+</body>
+<script src="app.js"></script>
+
+</html>

@@ -1,116 +1,130 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>WebMMO by JustinVanOort</title>
-    <!-- let's initialize firebase features -->
-    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
-    <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-app.js"></script>
-    <!-- If you enabled Analytics in your project, add the Firebase SDK for Analytics -->
-    <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-analytics.js"></script>
-    <!-- Add Firebase products that you want to use -->
-    <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-functions.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-messaging.js"></script>
-  </head>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WebMMO by JustinVanOort</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+  <!-- let's initialize firebase features -->
+  <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+  <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-app.js"></script>
+  <!-- If you enabled Analytics in your project, add the Firebase SDK for Analytics -->
+  <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-analytics.js"></script>
+  <!-- Add Firebase products that you want to use -->
+  <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-functions.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-messaging.js"></script>
+  <script src="config.js"></script>
+  <script src="common.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/ui/4.7.3/firebase-ui-auth.js"></script>
+  <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.7.3/firebase-ui-auth.css" />
+  <!-- Font used by this page-->
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap" rel="stylesheet">
+  <style media="screen">
+    body {
+      background: #ECEFF1;
+      color: rgba(0, 0, 0, 0.87);
+      font-family: Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    #message {
+      background: white;
+      max-width: 360px;
+      margin: 100px auto 16px;
+      padding: 32px 24px;
+      border-radius: 3px;
+    }
+
+    #message h2 {
+      color: #ffa100;
+      font-weight: bold;
+      font-size: 16px;
+      margin: 0 0 8px;
+    }
+
+    #message h1 {
+      font-size: 22px;
+      font-weight: 300;
+      color: rgba(0, 0, 0, 0.6);
+      margin: 0 0 16px;
+    }
+
+    #message p {
+      line-height: 140%;
+      margin: 16px 0 24px;
+      font-size: 14px;
+    }
+
+    #load {
+      color: rgba(0, 0, 0, 0.4);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    @media (max-width: 600px) {
+
+      body,
+      #message {
+        margin-top: 0;
+        background: white;
+        box-shadow: none;
+      }
+
+      body {
+        border-top: 16px solid #ffa100;
+      }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
+    crossorigin="anonymous"></script>
+  <script>
+    //Handle Account Status
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        window.location = 'game.html'; //After successful login, user will be redirected.
+      }
+    });
+  </script>
+</head>
+
 
 <body>
-<canvas id="myCanvas" width="600" height="600"></canvas>
-<!-- actual game code -->
-<script>
-//Globals
-//Rendering
-let lastRender;
-let f = 0;
-let t = 0
-let graphics;
-//Colour Palette:
-var palette = {"a": "#264653", "b": "#2a9d8f", "c": "#e9c46a", "d": "#f4a261", "e": "#e76f51"}
-
-//Initialize the game.
-init();
-
-//Do any game initialization here.
-function init() {
-  // Get our drawing elements.
-  let canvas = document.getElementById("myCanvas");
-  graphics = canvas.getContext("2d");
-  // Start the game loop
-  lastRender = 0
-  window.requestAnimationFrame(loop)
-  // Do any other init work
-  createWorld()
-}
-
-//game loop variable.
-function loop(timestamp) {
-  let progress = timestamp - lastRender
-
-  update(progress)
-  draw()
-  
-  lastRender = timestamp
-  window.requestAnimationFrame(loop)
-}
-
-
-//actually draw the game
-function draw() {
-
-}
-
-//update the game.
-function update(progress) {
-//Keep track of the game's frames.
-//Turn the frame's into time rounded to 4 decimals.
-f+=progress;
-t=f/1000;
-t=t.toFixed(4);
-
-}
-
-
-//Create the world.
-function createWorld()
-{
-  drawGrid(0,0,600,600,25);
-  drawRect(50,0,25,25,palette.b);
-
-}
-
-//Draws a grid with at x and y of a certain size w and h, with a cellsize of s.
-function drawGrid(x, y, w, h, s)
-{
-  var amount = {x:w/s, y:h/s};
-  for(var ix = 0; ix <= amount.x; ix++) {
-    for(var iy = 0; iy <= amount.y; iy++) {
-      //draw horizontal line
-      drawLine(x,y+iy*s,w,iy*s);
-      //draw vertical line
-      drawLine(x+ix*s,y,x+ix*s,h);
-    }
-  }
-}
-
-//Draws a line starting from x1 and y2 to x2 and y2
-function drawLine(x1, y1, x2, y2) {
-  graphics.beginPath();
-  graphics.moveTo(x1,y1);
-  graphics.lineTo(x2,y2);
-  graphics.stroke();
-}
-
-//Draws a grid from x1 and y1 to x2 and y2 in the colour c(hex string)
-function drawRect(x1,y1,x2,y2,c) {
-graphics.fillStyle = c;
-graphics.fillRect(x1,y2,x2-x1,y2-y1);
-graphics.fillStyle = "#FFFFF"
-}
-
-
-</script>
-    
+  <div id="message">
+    <h2>WebMMO Login</h2>
+    <div id="loading">Loading...</div>
+    <div id="loaded" class="hidden">
+      <div id="main">
+        <div id="user-signed-in" class="hidden">
+          <div id="user-info">
+            You are already signed in as:
+            <div id="name"></div>
+            <form action="game.html">
+              <input type="submit" value="Go to Game" />
+            </form>
+            <p>
+              Not you?
+              <button id="sign-out">Sign out</button>
+            </p>
+            <div class="clearfix"></div>
+          </div>
+        </div>
+        <div id="user-signed-out" class="hidden">
+          <h1>Please Log-in</h1>
+          <div id="firebaseui-spa">
+            <div id="firebaseui-container"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 </body>
+
+<script src="app.js"></script>
+
 </html>
