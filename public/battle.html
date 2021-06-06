@@ -75,26 +75,29 @@
       <!-- End of the left panel-->
       <p></p>
       <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top" title="The name of your hero!">Hero
-        Name: <span class="badge bg-primary">
+        Name: <span class="badge bg-secondary">
           <div id="hero-name"></div>
         </span></li>
       <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top"
         title="Your Hero's level is a representation of their strength and experience.">Hero Level: <span
-          class="badge bg-primary">
+          class="badge bg-secondary">
           <div id="hero-level"></div>
         </span></li>
       <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top"
-        title="Your Hero's class determines the skills and perks your Hero has.">Hero Class: <span class="badge bg-primary">
+        title="Your Hero's class determines the skills and perks your Hero has.">Hero Class: <span class="badge bg-secondary">
           <div id="hero-class"></div>
         </span></li>
       <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top"
-        title="Your Hero's health determines how much damage they can still take.">Hero Health: <span class="badge bg-primary">
+        title="Your Hero's health determines how much damage they can still take.">Hero Health: <span class="badge bg-secondary">
           <div id="hero-health"></div>
         </span></li>
-      <li class="list-group-item">Hero Inventory:
+      <p></p>
+      <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-inventory" aria-expanded="false" aria-controls="collapse-inventory">
+        Show Inventory
+      </button>
+      <div class="collapse" id="collapse-inventory">
         <ul id="hero-inventory-list" class="list-group"></ul>
-        </span></li>
-      
+      </div>
       
 
       </ul>
@@ -122,11 +125,6 @@
           </ul>
         </div>
       </div>
-      <p></p>
-      <hr></hr>
-      <h5>Enemies Available: </h5>
-        <ul id="current-location-enemies-list" class="list-group">
-        </ul>
       </p>
 
 

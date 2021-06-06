@@ -7,6 +7,7 @@
     //Globals:
     var currentLocation;
     var heroData;
+    var classData;
     var locAmountSubscription;
     var date;
     //Start the game as soon as we are logged in.
@@ -15,6 +16,7 @@
         pullCharacterInfo();
         updateLocation("Town Center");
         getTime()
+        //classData = await getClassData();
     }
 
     //Add buttons for going to different locations. Lock or Hide certain elements depending on level or quest conditions.
@@ -34,6 +36,11 @@
                         const buttonString = `<li class='list-group-item'><button class='btn btn-primary' type='button' onClick='updateLocation("` + `${doc.id}` +  `")'>${doc.id}</button></li>`
                         $('#game-menu-location-list').append(buttonString); 
                     }
+                }
+                else if(data.lvl_requirement != null && data.lvl_requirement == heroData.level + 1) {
+                  const buttonString = `<li class='list-group-item'><button class='btn btn-primary' data-toggle="tooltip" data-bs-placement="top"
+                  title="Unlocked at level ${heroData.level + 1}." type='button'>${doc.id} <span class="badge bg-secondary">🔒</span></button></li>`
+                        $('#game-menu-location-list').append(buttonString); 
                 }
             })
         })
@@ -82,6 +89,12 @@
               $('#current-location-players-names-list').append(`<li class="list-group-item">${name}</li>`);  
             })
           });
+          //Update the available enemies.
+          $('#current-location-enemies-list').html('');
+          doc.data().enemies.forEach( element => {
+              $('#current-location-enemies-list').append(`<li class='list-group-item'><button class='btn btn-danger' type='button'>${element}</button></li>`); 
+              console.log(element)
+          });
         });
     }
     }
@@ -89,16 +102,28 @@
     //Get our character's info and keep it up to date.
     function pullCharacterInfo() {
         db.collection("users").doc(getUserID())
-        .onSnapshot((doc) => {
+        .get().then((doc) => {
           heroData = doc.data();
+          getClassData().then((data) => {
+            classData = data;
+          })
+        })
+        db.collection("users").doc(getUserID())
+        .onSnapshot((doc) => {
+          getClassData().then((data) => {
+            classData = data;
+            heroData = doc.data();
           let heroNameText = document.getElementById('hero-name');
           let heroLevelText = document.getElementById('hero-level');
           let heroClassText = document.getElementById('hero-class');
+          let heroHealthText = document.getElementById('hero-health');
           heroNameText.innerText = heroData.name;
           heroLevelText.innerText = heroData.level;
           heroClassText.innerText = heroData.class;
+          heroHealthText.innerText = `${getHealth().current} / ${getHealth().max} `
           displayInventory(heroData.inventory);
           initLocations();
+          })
         });
       }
 
@@ -109,7 +134,11 @@
       inventory.forEach( element => {
         let n = element.n;
         let q = element.q;
-        $('#hero-inventory-list').append(`<li class="list-group-item">x${q} ${n}</li>`);  
+        let t = element.t;
+        if(t == null || t == undefined) t = "";
+        $('#hero-inventory-list').append(`<li class="list-group-item" data-toggle="tooltip" data-bs-placement="top"
+        title="${t}">${n} <span class="badge bg-info">x${q}
+      </span></li>`);  
       })
     }
 
@@ -198,3 +227,18 @@
       date = new Date(n);
       document.getElementById('current-location-time').innerText = date.toUTCString();
     }
+
+    //Get class data
+    async function getClassData() {
+      let doc = await db.collection("data").doc("stats").get();
+      return doc.get(heroData.class);
+      throw new Error("No such document");
+  }
+
+  //Get health object
+  function getHealth() {
+   const maxHealth = classData.max_health_base + classData.extra_health_per_level * heroData.level;
+   const currentHealth = heroData.health_current;
+   return {current: currentHealth, max: maxHealth};
+  }
+
