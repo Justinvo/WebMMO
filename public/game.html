@@ -1,3 +1,4 @@
+<!-- Copyright 2021 Justin Van Oort. All Rights Reserved. -->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -32,35 +33,36 @@
     integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
     crossorigin="anonymous"></script>
   <script>
+    //Globals
     var userObject;
     var userID;
+    //Setup tooltips.
     $(document).ready(function () {
       $("body").tooltip({ selector: '[data-toggle=tooltip]' });
     });
-    firebase.auth().onAuthStateChanged(user => {
+    //Set our persistence and then attempt to log-in.
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(() => 
+    {
+      firebase.auth().onAuthStateChanged(user => {
       if (!user) {
         //If the user is not logged in, move to the log-in screen.
         window.location = 'index.html';
       }
       else {
-        //If we have confirmed that the user is logged in, start the game.
-        userObject = user;
-        userID = user.uid;
         document.getElementById("user-name").innerText = "Logged in as: " + user.displayName;
         //Check if our user has a hero, if they do continue, if they don't send them to the hero screen.
-        db.collection("users").doc(userID).get().then((doc) => {
+        db.collection("users").doc(getUserID()).get().then((doc) => {
           if(!doc.data()) window.location = 'hero.html'
           if(!doc.data().name) window.location = 'name.html'
         })
         initGame();
       }
     });
+    })
   </script>
 
 
 </head>
-<!-- Game code-->
-
 <body>
   <div class="game-container">
     <div class="toppane">
@@ -72,15 +74,23 @@
       <h1>Hero Information</h1>
       <!-- End of the left panel-->
       <p></p>
-      <ul class="list-group list-group-flush"></ul>
       <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top" title="The name of your hero!">Hero
-        Name: <span class="badge bg-secondary">Justin</span></li>
+        Name: <span class="badge bg-secondary"><div id="hero-name"></div></span></li>
       <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top"
         title="Your Hero's level is a representation of their strength and experience.">Hero Level: <span
-          class="badge bg-secondary">10</span></li>
+          class="badge bg-secondary"><div id="hero-level"></div></span></li>
       <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top"
         title="Your Hero's class determines the skills and perks your Hero has.">Hero Class: <span
-          class="badge bg-secondary">Ranger</span></li>
+          class="badge bg-secondary"><div id="hero-class"></div></span></li>
+      <p></p>
+      <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-inventory" aria-expanded="false" aria-controls="collapse-inventory">
+        Show Inventory
+      </button>
+      <div class="collapse" id="collapse-inventory">
+        <ul id="hero-inventory-list" class="list-group"></ul>
+      </div>
+      
+
       </ul>
     </div>
     <div class="middlepane">
@@ -89,18 +99,20 @@
       <h2>
         <div id="current-location-text"></div>
       </h2>
+      <h3>
+        <div id="current-location-time"></div>
+      </h3>
       <p>
       <div id="current-location-players-amount-text">There are currently 0 players in the Town Center.</div>
       <p></p>
       <p>
-        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
-          Show Players
+        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-playerlist" aria-expanded="false" aria-controls="collapse-playerlist">
+          Show Players Here
         </button>
       </p>
-      <div class="collapse" id="collapseExample">
+      <div class="collapse" id="collapse-playerlist">
         <div>
           <ul id="current-location-players-names-list" class="list-group list-group-flush">
-  
           </ul>
         </div>
       </div>
@@ -111,76 +123,19 @@
     <div class="rightpane">
       <!-- Start of the right panel-->
       <h1>Game Menu</h1>
-      <div class="list-group">
+      <div class="game-menu-list">
         <button id="sign-out" class="list-group-item list-group-item-action list-group-item-warning">Sign-out</button>
+        <p>
+          <h5>Locations Available: </h5>
+        <ul id="game-menu-location-list" class="list-group">
+        </ul>
+        </p>
       </div>
       <!-- End of the right panel-->
     </div>
   </div>
-  <!-- actual game code -->
-  <script>
-    //Globals:
-    var currentLocation;
-    //Start the game as soon as we are logged in.
-    function initGame() {
-        //Initialize our character.
-        pullCharacterInfo();
-        updateLocation("Town Center");
-      }
-    
-    //Change the current location of the player.
-    function updateLocation(newLocation) {
-      if(currentLocation)
-      {
-        // Atomically remove the player from the previous location, if necessary.
-        let locRef = db.collection('locations').doc(currentLocation);
-        locRef.update({
-          players: firebase.firestore.FieldValue.arrayRemove(userID)
-        });
-      }
-      //Update the location first.
-      currentLocation = newLocation;
-      let locText = document.getElementById("current-location-text");
-      locText.innerText = currentLocation
-      //Unsubscribe from any  previous listeners
-      if (locAmountSubscription) locAmountSubscription();
-      //Add our player id to the location list of our new location.
-      let locRef = db.collection('locations').doc(currentLocation);
-      locRef.update({
-        players: firebase.firestore.FieldValue.arrayUnion(userID)
-      });
-      //Keep track of how many players are here. Auto updates if this changes.
-      let locAmountText = document.getElementById("current-location-players-amount-text");
-      var locAmountSubscription = db.collection("locations").doc(currentLocation)
-        .onSnapshot((doc) => {
-          if (doc.data().players.length != 1) {
-            locAmountText.innerText = "There are currently " + doc.data().players.length + " players in the " + currentLocation;
-          }
-          else {
-            locAmountText.innerText = "There is currently 1 player in the " + currentLocation;
-          }
-          //Update the player names list.
-          $('#current-location-players-names-list').html('');
-          doc.data().players.forEach( element => {
-            let nameRef = db.collection("users").doc(element);
-            nameRef.get().then((doc) => {
-              let name = doc.data().name;
-              $('#current-location-players-names-list').append(`<li class="list-group-item">${name}</li>`);  
-            })
-            
-          });
-        });
-
-
-    }
-    
-    //Get our character's info.
-    function pullCharacterInfo() {
-
-    }
-
-  </script>
 </body>
 <script src="app.js"></script>
+<script src="game.js"></script>
 
 </html>
