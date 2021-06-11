@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WebMMO by JustinVanOort</title>
+  <title>WebMMO</title>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"
     integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -54,6 +54,9 @@
         db.collection("users").doc(getUserID()).get().then((doc) => {
           if(!doc.data()) window.location = 'hero.html'
           if(!doc.data().name) window.location = 'name.html'
+          db.collection("fights").doc(getUserID()).get().then((doc) => {
+              if(doc.data()) window.location = 'battle.html'
+            })
         })
         initGame();
       }
@@ -91,12 +94,14 @@
         title="Your Hero's health determines how much damage they can still take.">Hero Health: <span class="badge bg-primary">
           <div id="hero-health"></div>
         </span></li>
+      <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top"
+        title="XP determines how experienced your hero is and how close to levelling up they are.">Hero XP: <span class="badge bg-primary">
+        <div id="hero-xp"></div>
+        </span></li>
       <li class="list-group-item">Hero Inventory:
         <ul id="hero-inventory-list" class="list-group"></ul>
         </span></li>
       
-      
-
       </ul>
     </div>
     <div class="middlepane">
@@ -128,6 +133,13 @@
         <ul id="current-location-enemies-list" class="list-group">
         </ul>
       </p>
+      <p></p>
+      <hr></hr>
+      <h5>Items Available Here: </h5>
+        <ul id="current-location-items" class="list-group">
+          <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top" onClick="addItemToInventory(1, 1);" title="Restores 10 health.">Buy Health Potion <span class="badge bg-info">10 Gold</span></li>
+        </ul>
+      </p>
 
 
       <!-- End of the middle panel-->
@@ -145,6 +157,26 @@
       </div>
       <!-- End of the right panel-->
     </div>
+
+    <!-- Loading Blocker-->
+    <!-- Modal -->
+<div class="modal fade" id="loading-screen" tabindex="-1" aria-labelledby="loading-screen-label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="loading-screen-label">Loading...</h5>
+      </div>
+      <div class="modal-body">
+        <h3>Processing action, please wait.</h3>
+        <div class="d-flex justify-content-center">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
   </div>
 </body>
 <script src="app.js"></script>

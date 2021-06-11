@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WebMMO by JustinVanOort</title>
+  <title>WebMMO</title>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"
     integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -54,8 +54,12 @@
         db.collection("users").doc(getUserID()).get().then((doc) => {
           if(!doc.data()) window.location = 'hero.html'
           if(!doc.data().name) window.location = 'name.html'
+            db.collection("fights").doc(getUserID()).get().then((doc) => {
+              if(!doc.data()) window.location = 'game.html'
+            })
         })
-        initGame();
+        pullCharacterInfo();
+        initBattle();
       }
     });
     })
@@ -75,59 +79,68 @@
       <!-- End of the left panel-->
       <p></p>
       <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top" title="The name of your hero!">Hero
-        Name: <span class="badge bg-secondary">
+        Name: <span class="badge bg-primary">
           <div id="hero-name"></div>
         </span></li>
       <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top"
         title="Your Hero's level is a representation of their strength and experience.">Hero Level: <span
-          class="badge bg-secondary">
+          class="badge bg-primary">
           <div id="hero-level"></div>
         </span></li>
       <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top"
-        title="Your Hero's class determines the skills and perks your Hero has.">Hero Class: <span class="badge bg-secondary">
+        title="Your Hero's class determines the skills and perks your Hero has.">Hero Class: <span class="badge bg-primary">
           <div id="hero-class"></div>
         </span></li>
       <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top"
-        title="Your Hero's health determines how much damage they can still take.">Hero Health: <span class="badge bg-secondary">
+        title="Your Hero's health determines how much damage they can still take.">Hero Health: <span class="badge bg-primary">
           <div id="hero-health"></div>
         </span></li>
-      <p></p>
-      <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-inventory" aria-expanded="false" aria-controls="collapse-inventory">
-        Show Inventory
-      </button>
-      <div class="collapse" id="collapse-inventory">
+      <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top"
+        title="XP determines how experienced your hero is and how close to levelling up they are.">Hero XP: <span class="badge bg-primary">
+        <div id="hero-xp"></div>
+        </span></li>
+      <li class="list-group-item">Hero Inventory:
         <ul id="hero-inventory-list" class="list-group"></ul>
-      </div>
+        </span></li>
       
-
       </ul>
     </div>
     <div class="middlepane">
       <!-- Start of the middle panel-->
-      <h1>Location: </h1>
-      <h2>
-        <div id="current-location-text"></div>
-      </h2>
-      <h3>
-        <div id="current-location-time"></div>
-      </h3>
+      <h1>Battle!</h1>
+      <!-- Battle Info -->
       <p>
-      <div id="current-location-players-amount-text">There are currently 0 players in the Town Center.</div>
-      <p></p>
-      <p>
-        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-playerlist" aria-expanded="false" aria-controls="collapse-playerlist">
-          Show Players Here
-        </button>
-      </p>
-      <div class="collapse" id="collapse-playerlist">
-        <div>
-          <ul id="current-location-players-names-list" class="list-group list-group-flush">
-          </ul>
+        <h2><div id="battle-enemy-name"></div></h2>
+        <p></p>
+        <div class="d-flex justify-content-center">
+          <div id="health-enemy" class="progress w-75">
+          </div>
         </div>
+          <p></p>
+        <div class="d-flex justify-content-center">
+          <div id="health-hero" class="progress w-75">
+          </div>
+        </div>
+      </p>
+      <!-- Actions -->
+      <p>
+      <h5>Actions</h5>
+      <div class="d-flex justify-content-center gap-2">
+        <button class="btn btn-primary" type="button" onClick='attackInBattle(5)'>Light Attack</button>
+        <button class="btn btn-primary" type="button" onClick='attackInBattle(10)'>Heavy Attack</button>
+      </div>
+      <p></p>
+      <div class="d-flex justify-content-center gap-2">
+        <button class="btn btn-primary" type="button">Class Action 1</button>
+        <button class="btn btn-primary" type="button">Class Action 2</button>
+        <button class="btn btn-primary" type="button">Class Action 3</button>
       </div>
       </p>
+      <!-- Battle-log -->
+      <h5>Log:</h5>
+      <ul id="battle-log" class="list-group">
 
-
+      </ul>
       <!-- End of the middle panel-->
     </div>
     <div class="rightpane">
@@ -135,14 +148,30 @@
       <h1>Menu</h1>
       <div class="game-menu-list">
         <button id="sign-out" class="list-group-item list-group-item-action list-group-item-warning">Sign-out</button>
-        <p>
-          <h5>Locations Available: </h5>
-        <ul id="game-menu-location-list" class="list-group">
-        </ul>
-        </p>
+        <button id="flee-battle" class="list-group-item list-group-item-action list-group-item-danger" onClick="endBattle()"><div id="flee-battle-text">Flee Battle</button>
       </div>
       <!-- End of the right panel-->
     </div>
+
+    <!-- Loading Blocker-->
+    <!-- Modal -->
+<div class="modal fade" id="loading-screen" tabindex="-1" aria-labelledby="loading-screen-label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="loading-screen-label">Loading...</h5>
+      </div>
+      <div class="modal-body">
+        <h3><div id="loading-screen-text">Processing action, please wait.</div></h3>
+        <div class="d-flex justify-content-center">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
   </div>
 </body>
 <script src="app.js"></script>

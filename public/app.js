@@ -135,24 +135,6 @@ function getUiConfig() {
     user ? handleSignedInUser(user) : handleSignedOutUser();
   });
   
-  /**
-   * Deletes the user's account.
-   */
-  var deleteAccount = function() {
-    firebase.auth().currentUser.delete().catch(function(error) {
-      if (error.code == 'auth/requires-recent-login') {
-        // The user's credential is too old. She needs to sign in again.
-        firebase.auth().signOut().then(function() {
-          // The timeout allows the message to be displayed after the UI has
-          // changed to the signed out state.
-          setTimeout(function() {
-            alert('Please sign in again to delete your account.');
-          }, 1);
-        });
-      }
-    });
-  };
-  
   
   /**
    * Handles when the user changes the reCAPTCHA or email signInMethod config.
@@ -177,6 +159,12 @@ function getUiConfig() {
    */
   var initApp = function() {
     document.getElementById('sign-out').addEventListener('click', function() {
+      db.collection("locations").where('player', 'array-contains',
+      firebase.auth().currentUser.uid).get().then((doc) => {
+        db.collection("locations").doc(doc).update({
+          players: firebase.firestore.FieldValue.arrayDelete(firebase.auth().currentUser.uid)
+        })
+      })
       firebase.auth().signOut();
     });
   };
