@@ -74,106 +74,155 @@
     </div>
     <div class="leftpane">
       <!-- Start of the left panel-->
-      <h1>Hero</h1>
-      <!-- End of the left panel-->
       
-      <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top" title="The name of your hero!">Hero
-        Name: <span class="badge bg-primary">
-          <div id="hero-name"></div>
-        </span></li>
-      <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top"
-        title="Your Hero's level is a representation of their strength and experience.">Hero Level: <span
-          class="badge bg-primary">
-          <div id="hero-level"></div>
-        </span></li>
-      <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top"
-        title="Your Hero's class determines the skills and perks your Hero has.">Hero Class: <span class="badge bg-primary">
-          <div id="hero-class"></div>
-        </span></li>
-      <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top"
-        title="Your Hero's health determines how much damage they can still take.">Hero Health: <span class="badge bg-primary">
-          <div id="hero-health"></div>
-        </span></li>
-      <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top"
-        title="XP determines how experienced your hero is and how close to levelling up they are.">Hero XP: <span class="badge bg-primary">
-        <div id="hero-xp"></div>
-        </span></li>
-      <li class="list-group-item">Hero Inventory:
-        <ul id="hero-inventory-list" class="list-group"></ul>
-        </span></li>
-        <p></p>
-        <h5><b>Upcoming Features:</b></h5>
-        <li class="list-group-item">Quests!</li>
-        <li class="list-group-item">Shops!</li>
-        <li class="list-group-item">Player-driven Marketplace!</li>
-        <p></p>
-        <h5><b>Known Bugs:</b></h5>
-        <li class="list-group-item">There is an issue where inventory items incorrectly stack, causing UI and Shop issues.</li>
-        <li class="list-group-item">Players are not shown to leave an area, after quiting the game.</li>
-      </ul>
+      <!-- End of the left panel-->
+      <nav>
+        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+          <button class="nav-link active" id="nav-info-hero-tab" data-bs-toggle="tab" data-bs-target="#nav-info-hero" type="button" role="tab" aria-controls="nav-info-hero" aria-selected="true">Hero Info</button>
+          <button class="nav-link" id="nav-info-inventory-tab" data-bs-toggle="tab" data-bs-target="#nav-info-inventory" type="button" role="tab" aria-controls="nav-info-inventory" aria-selected="false">Inventory</button>
+          <button class="nav-link" id="nav-info-quests-tab" data-bs-toggle="tab" data-bs-target="#nav-info-quests" type="button" role="tab" aria-controls="nav-info-quests" aria-selected="false">Quests</button>
+        </div>
+      </nav>
+      <div class="tab-content" id="nav-tabContent">
+        <!-- Hero Info-->
+        <div class="tab-pane fade show active" id="nav-info-hero" role="tabpanel" aria-labelledby="nav-info-hero-tab">
+          <p></p>
+          <h5>Hero Info</h5>
+          <p></p>
+          <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top" title="The name of your hero!">Hero
+            Name: <span class="badge bg-primary">
+              <div id="hero-name"></div>
+            </span></li>
+          <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top"
+            title="Your Hero's level is a representation of their strength and experience.">Hero Level: <span
+              class="badge bg-primary">
+              <div id="hero-level"></div>
+            </span></li>
+          <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top"
+            title="Your Hero's class determines the skills and perks your Hero has.">Hero Class: <span class="badge bg-primary">
+              <div id="hero-class"></div>
+            </span></li>
+          <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top"
+            title="Your Hero's health determines how much damage they can still take.">Hero Health: <span class="badge bg-primary">
+              <div id="hero-health"></div>
+            </span></li>
+          <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top"
+            title="XP determines how experienced your hero is and how close to levelling up they are.">Hero XP: <span class="badge bg-primary">
+            <div id="hero-xp"></div>
+            </span></li>
+        </div>
+        <!-- Inventory-->
+        <div class="tab-pane fade" id="nav-info-inventory" role="tabpanel" aria-labelledby="nav-info-inventory-tab">
+          <p></p>
+          <h5>Hero Inventory: </h5>
+          <p></p>
+          <li class="list-group-item"><ul id="hero-inventory-list" class="list-group"></ul></li>
+        </div>
+        <!-- Quests-->
+        <div class="tab-pane fade" id="nav-info-quests" role="tabpanel" aria-labelledby="nav-info-quests-tab">
+          <p></p>
+          <h5>Quests: </h5>
+          <p></p>
+          <li class="list-group-item"><ul id="hero-quests-list" class="list-group"></ul></li>
+        </div>
+      </div>
     </div>
     <div class="middlepane">
       <!-- Start of the middle panel-->
-      <h1>Location: </h1>
-      <h2>
-        <div id="current-location-text"></div>
-      </h2>
-      <h3>
-        <div id="current-location-time"></div>
-      </h3>
-      <p>
-      <div id="current-location-players-amount-text">There are currently 0 players in the Town Center.</div>
-      <p></p>
-      <p>
-        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-playerlist" aria-expanded="false" aria-controls="collapse-playerlist">
-          Show Players Here
-        </button>
-      </p>
-      <div class="collapse" id="collapse-playerlist">
-        <div>
-          <ul id="current-location-players-names-list" class="list-group list-group-flush">
-          </ul>
-        </div>
-      </div>
-      <p></p>
-      <hr></hr>
-      <h5>Enemies Available: </h5>
-        <ul id="current-location-enemies-list" class="list-group">
-        </ul>
-      </p>
-      <p></p>
-      <hr></hr>
-      <h5>Items Available Here: </h5>
-        <ul id="current-location-items" class="list-group">
-          <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top" onClick="addItemToInventory(1, 1);" title="Restores 10 health.">Buy Health Potion <span class="badge bg-info">10 Gold</span></li>
-        </ul>
-      </p>
-
-
+      <nav>
+        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+          <button class="nav-link active" id="nav-game-tab" data-bs-toggle="tab" data-bs-target="" type="button" role="tab" aria-controls="" aria-selected="true">Game</button>
+          </div>
+      </nav>
+          <h2>
+            <div id="current-location-text"></div>
+          </h2>
+          <h3>
+            <div id="current-location-time"></div>
+          </h3>
+          <p>
+          <div id="current-location-players-amount-text">There are currently 0 players in the Town Center.</div>
+          <p></p>
+          <p>
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-playerlist" aria-expanded="false" aria-controls="collapse-playerlist">
+              Show Players Here
+            </button>
+          </p>
+          <div class="collapse" id="collapse-playerlist">
+            <div>
+              <ul id="current-location-players-names-list" class="list-group list-group-flush">
+              </ul>
+            </div>
+          </div>
+          <p></p>
+          <hr></hr>
+          <h5>Enemies Available: </h5>
+            <ul id="current-location-enemies-list" class="list-group">
+            </ul>
+          </p>
+          <p></p>
+          <hr></hr>
+          <h5>Items Available Here: </h5>
+            <ul id="current-location-items" class="list-group">
+              <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top" onClick="addItemToInventory(1, 1);" title="Restores 10 health.">Buy Health Potion <span class="badge bg-info">10 Gold</span></li>
+            </ul>
+          </p>
       <!-- End of the middle panel-->
     </div>
     <div class="rightpane">
       <!-- Start of the right panel-->
-      <h1>Menu</h1>
-      <div class="game-menu-list">
-        <button id="sign-out" class="list-group-item list-group-item-action list-group-item-warning">Sign-out</button>
-        <p>
+      <nav>
+        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+          <button class="nav-link active" id="nav-menu-locations-tab" data-bs-toggle="tab" data-bs-target="#nav-menu-locations" type="button" role="tab" aria-controls="nav-menu-locations" aria-selected="true">Locations</button>
+          <button class="nav-link" id="nav-menu-chat-tab" data-bs-toggle="tab" data-bs-target="#nav-menu-chat" type="button" role="tab" aria-controls="nav-menu-chat" aria-selected="false">Game Chat</button>
+          <button class="nav-link" id="nav-menu-options-tab" data-bs-toggle="tab" data-bs-target="#nav-menu-options" type="button" role="tab" aria-controls="nav-menu-options" aria-selected="false">Game Menu</button>
+        </div>
+      </nav>
+      <div class="tab-content" id="nav-tabContent">
+        <div class="tab-pane fade show active" id="nav-menu-locations" role="tabpanel" aria-labelledby="nav-menu-locations-tab">
+          <p></p>
           <h5>Locations Available: </h5>
-        <ul id="game-menu-location-list" class="list-group">
-        </ul>
-        <p>
-        <h5>Game Chat: </h5>
-        <ul id="game-menu-chat-list" class="list-group">
-        </ul>
-        <form>
-          <div class="form-group">
-            <input type="text" class="form-control" id="chat-message-input" aria-describedby="chat-message-help" placeholder="Hello World!">
-            <small id="chat-message-help" class="form-text text-muted">Your message will be visible by everyone in game. Offensive content will get you banned.</small>
+          <p></p>
+          <ul id="game-menu-location-list" class="list-group">
+          </ul>
+        </div>
+        <div class="tab-pane fade" id="nav-menu-chat" role="tabpanel" aria-labelledby="nav-menu-chat-tab">
+          <p></p>
+          <h5>Game Chat: </h5>
+          <p></p>
+          <ul id="game-menu-chat-list" class="list-group">
+          </ul>
+          <form>
+            <div class="form-group">
+              <input type="text" class="form-control" id="chat-message-input" aria-describedby="chat-message-help" placeholder="Hello World!">
+              <small id="chat-message-help" class="form-text text-muted">Your message will be visible by everyone in game. Offensive content will get you banned.</small>
+            </div>
+            <button type="button" class="btn btn-primary" onClick="submitChat()">Submit</button>
+          </form>
+        </div>
+        <div class="tab-pane fade" id="nav-menu-options" role="tabpanel" aria-labelledby="nav-menu-options-tab">
+          <p></p>
+          <h5>Menu: </h5>
+          <h5> Thanks for playing! </h5>
+          <p></p>
+          <div class="game-menu-list">
+            <button id="sign-out" class="list-group-item list-group-item-action list-group-item-warning">Sign-out</button>
           </div>
-          <button type="button" class="btn btn-primary" onClick="submitChat()">Submit</button>
-        </form>
-        </p>
-        </p>
+          <p></p>
+          <h5><b>Upcoming Features:</b></h5>
+          <p></p>
+          <li class="list-group-item">Quests!</li>
+          <li class="list-group-item">Shops!</li>
+          <li class="list-group-item">Player-driven Marketplace!</li>
+          <p></p>
+          <h5><b>Known Bugs:</b></h5>
+          <p></p>
+          <li class="list-group-item">There is an issue where inventory items incorrectly stack, causing UI and Shop issues.</li>
+          <li class="list-group-item">Players are not shown to leave an area, after quiting the game.</li>
+        </ul>
+        </div>
+      </div>
+
       </div>
       <!-- End of the right panel-->
     </div>
