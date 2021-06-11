@@ -17,6 +17,7 @@
         //Initialize our character.
         pullCharacterInfo();
         updateLocation("Town Center");
+        initChat()
         getTime()
     }
 
@@ -183,6 +184,32 @@
       })
     }
 
+    //Draw the chat and keep it up to date.
+    function initChat() {
+      db.collection('data').doc('chat')
+        .onSnapshot((doc) => {
+          $('#game-menu-chat-list').html('<p></p>');
+          const chatData = doc.data().messages;
+          for (var i = chatData.length - 1; i >= 0; i--) {
+            $('#game-menu-chat-list').append(`<li class="list-group-item" data-toggle="tooltip">${chatData[i]}</li>`)
+        }
+      })
+    }
+
+  //Submit a chat message to the chat.
+  function submitChat() {
+    let playerRef = db.collection('users').doc(getUserID())
+    playerRef.get().then((doc) => {
+      const chatmessage = "<b>" + doc.data().name + ":</b> " + (document.getElementById('chat-message-input')).value;
+      document.getElementById('chat-message-input').value = "";
+      db.collection('data').doc('chat')
+        .update({
+          messages: firebase.firestore.FieldValue.arrayUnion(chatmessage)
+        })
+    });
+  }
+
+
     //////////////////////
     // HELPER FUNCTIONS //
     //////////////////////
@@ -326,7 +353,6 @@
   }
 
   //Start a battle
-  //TODO: use enemy data.
   function startBattle(enemy) {
     toggleLoadingState(true);
       //Check that our player is not currently in a fight.
@@ -335,11 +361,24 @@
       toggleLoadingState(false);
     }
     else {
-      const dataObject = {name: getUserID(), enemy: enemy, health_enemy: 10, health_hero: getHealth().current, health_enemy_max: 10, health_hero_max: 25, log: ["<b>1:</b> The battle starts!"], xp: 10}
-        db.collection('fights').doc(getUserID()).set(dataObject).then(() => {
-          toggleLoadingState(false);
-          window.location = "battle.html";
-        })
+      db.collection('data').doc('enemies').get().then((enemyData) => {
+        const enemyObject = enemyData.data()[enemy];
+        const dataObject = {name: getUserID(), 
+          enemy: enemy, 
+          base_attack: enemyObject.base_attack,
+          base_attack_min: enemyObject.base_attack_min,
+          base_attack_max: enemyObject.base_attack_max,
+          health_enemy: enemyObject.health, 
+          health_hero: getHealth().current, 
+          health_enemy_max: enemyObject.health,
+          health_hero_max: getHealth().max, 
+          log: ["<b>1:</b> The battle starts!"], 
+          xp: enemyObject.xp}
+          db.collection('fights').doc(getUserID()).set(dataObject).then(() => {
+            toggleLoadingState(false);
+            window.location = "battle.html";
+          })
+      })
     }
   })
   }
@@ -360,16 +399,19 @@
   })
 }
 
+
+
 //Attack in battle
 function attackInBattle(damage) {
   toggleLoadingState(true);
   const uid = getUserID();
   //Add the damage to the enemy and add a log.
   db.collection('fights').doc(uid).get().then((doc) => {
-    if (doc.data().health_enemy != 0 && doc.data().health_player != 0) {
+    if (doc.data().health_enemy != 0 && doc.data().health_hero != 0) {
       var newenemyhealth = doc.data().health_enemy - damage;
       if(newenemyhealth < 0) newenemyhealth = 0;
-      var newherohealth = doc.data().health_hero - 2;
+      const enemyDamage = doc.data().base_attack + (getRandomInt(doc.data().base_attack_max - doc.data().base_attack_min))
+      var newherohealth = doc.data().health_hero - enemyDamage;
       if(newherohealth < 0) newherohealth = 0;
       db.collection('fights').doc(uid).update({
         health_enemy: newenemyhealth,
@@ -378,7 +420,7 @@ function attackInBattle(damage) {
         //Add the damage to the player and add a log.
         db.collection('fights').doc(uid).update({
           health_hero: newherohealth,
-          log: firebase.firestore.FieldValue.arrayUnion(`<b>${doc.data().log.length + 1}: ${doc.data().enemy}</b> attacks Hero for 2 damage!`)
+          log: firebase.firestore.FieldValue.arrayUnion(`<b>${doc.data().log.length + 1}: ${doc.data().enemy}</b> attacks Hero for ${enemyDamage} damage!`)
         }).then(() => {
           setHeroHealth(newherohealth);
           checkBattleProgress();
@@ -400,6 +442,7 @@ function checkBattleProgress() {
         log: firebase.firestore.FieldValue.arrayUnion(`<b>${doc.data().log.length+1}: Hero</b> has defeated the ${doc.data().enemy} and has gained ${doc.data().xp} XP!`)
       }).then(() => {
         addXP(doc.data().xp);
+        awardLoot(doc.data().enemy);
         finishBattle();
         toggleLoadingState(false);
       });
@@ -439,6 +482,21 @@ function finishBattle() {
   button.innerText = "Leave Battle"
 }
 
+//Award loot to the player upon victory.
+function awardLoot(id) {
+  db.collection("data").doc('enemies').get().then((doc) => {
+    const data = doc.get(id).rewards;
+    addItemToInventory(data.i, data.q);
+    db.collection('data').doc('items').get().then((items) => {
+      const item = items.data()[data.i]
+      db.collection('fights').doc(getUserID()).update({
+        log: firebase.firestore.FieldValue.arrayUnion(`<b>Result: </b>The Hero gained ${data.q}x ${item.name}!`)
+      })
+    })
+  })
+}
+
+
   //function setLoadingState: toggle the status of the loading screen.
   //TODO: add manual time-out
   function toggleLoadingState(status) {
@@ -464,4 +522,8 @@ function finishBattle() {
       loadingScreen.show();
     }
 
+  }
+
+  function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
   }

@@ -96,7 +96,11 @@
       let name = input.value;
       db.collection("users").doc(userID).update({
         name: name,
-        level: 1
+        level: 1,
+        xp: 0,
+        health_current: 10,
+        quests_completed: [],
+        inventory: []
         }).then(() => {
           window.location = "game.html"
         })

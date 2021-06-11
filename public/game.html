@@ -46,7 +46,7 @@
       firebase.auth().onAuthStateChanged(user => {
       if (!user) {
         //If the user is not logged in, move to the log-in screen.
-        window.location = 'index.html';
+        //window.location = 'index.html';
       }
       else {
         document.getElementById("user-name").innerText = "Logged in as: " + user.displayName;
@@ -76,7 +76,7 @@
       <!-- Start of the left panel-->
       <h1>Hero</h1>
       <!-- End of the left panel-->
-      <p></p>
+      
       <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top" title="The name of your hero!">Hero
         Name: <span class="badge bg-primary">
           <div id="hero-name"></div>
@@ -101,7 +101,15 @@
       <li class="list-group-item">Hero Inventory:
         <ul id="hero-inventory-list" class="list-group"></ul>
         </span></li>
-      
+        <p></p>
+        <h5><b>Upcoming Features:</b></h5>
+        <li class="list-group-item">Quests!</li>
+        <li class="list-group-item">Shops!</li>
+        <li class="list-group-item">Player-driven Marketplace!</li>
+        <p></p>
+        <h5><b>Known Bugs:</b></h5>
+        <li class="list-group-item">There is an issue where inventory items incorrectly stack, causing UI and Shop issues.</li>
+        <li class="list-group-item">Players are not shown to leave an area, after quiting the game.</li>
       </ul>
     </div>
     <div class="middlepane">
@@ -153,6 +161,18 @@
           <h5>Locations Available: </h5>
         <ul id="game-menu-location-list" class="list-group">
         </ul>
+        <p>
+        <h5>Game Chat: </h5>
+        <ul id="game-menu-chat-list" class="list-group">
+        </ul>
+        <form>
+          <div class="form-group">
+            <input type="text" class="form-control" id="chat-message-input" aria-describedby="chat-message-help" placeholder="Hello World!">
+            <small id="chat-message-help" class="form-text text-muted">Your message will be visible by everyone in game. Offensive content will get you banned.</small>
+          </div>
+          <button type="button" class="btn btn-primary" onClick="submitChat()">Submit</button>
+        </form>
+        </p>
         </p>
       </div>
       <!-- End of the right panel-->
