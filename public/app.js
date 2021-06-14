@@ -122,16 +122,16 @@ function getUiConfig() {
    * Displays the UI for a signed out user.
    */
   var handleSignedOutUser = function() {
-    document.getElementById('user-signed-in').style.display = 'none';
-    document.getElementById('user-signed-out').style.display = 'block';
+    if(document.getElementById('user-signed-in')) document.getElementById('user-signed-in').style.display = 'none';
+    if(document.getElementById('user-signed-out')) document.getElementById('user-signed-out').style.display = 'block';
     ui.start('#firebaseui-container', getUiConfig());
   };
   
   // Listen to change in auth state so it displays the correct UI for when
   // the user is signed in or not.
   firebase.auth().onAuthStateChanged(function(user) {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('loaded').style.display = 'block';
+    if(document.getElementById('loading')) document.getElementById('loading').style.display = 'none';
+    if(document.getElementById('loaded')) document.getElementById('loaded').style.display = 'block';
     user ? handleSignedInUser(user) : handleSignedOutUser();
   });
   
@@ -163,9 +163,10 @@ function getUiConfig() {
       firebase.auth().currentUser.uid).get().then((doc) => {
         db.collection("locations").doc(doc).update({
           players: firebase.firestore.FieldValue.arrayDelete(firebase.auth().currentUser.uid)
+        }).then(() => {
+          firebase.auth().signOut();
         })
       })
-      firebase.auth().signOut();
     });
   };
   
