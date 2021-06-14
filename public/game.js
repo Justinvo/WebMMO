@@ -17,8 +17,7 @@
         //Initialize our character.
         pullCharacterInfo();
         updateLocation("Town Center");
-        initChat()
-        getTime()
+        initChat();
     }
 
     //Globals for battle:
@@ -220,6 +219,7 @@
       const itemRef = db.collection("data").doc("items").get()
         .then((doc) => {
           let item = doc.data()[id];
+          if(quantity > 0) toastr.success(`You received: ${quantity}x ${item.name}`, 'Item Gained!');
           //Now that we have our item data from the server, let's add it to our inventory.
           let playerRef = db.collection('users').doc(getUserID())
           playerRef.get().then((doc) => {
@@ -349,7 +349,7 @@
 
   //Feedback for if the player levelled up.
   function playerLevelUp(newLevel) {
-    console.log("congrats you are now level: " + newLevel);
+    toastr.success(`You received: ${quantity}x ${item.name}`, 'Item Gained!');
   }
 
   //Start a battle
@@ -502,7 +502,29 @@ function awardLoot(id) {
   function toggleLoadingState(status) {
     const loadingScreenTexts = [
       "Convincing the shopkeeper your gold is real...",
-      "Attempting to catch frogs from a pond..."
+      "Attempting to catch frogs from a pond...",
+      "Allying with the frog people for the coming war...",
+      "Collecting coins from the city fountains...",
+      "Finding the best way to travel there...",
+      "Is a Komodo Dragon really a Dragon???",
+      "Where do all the Geese go at night?",
+      "Are the Geese at the park actually free?",
+      "Gears go ⚙️ ⚙️ ⚙️...",
+      "🐸 + 🐦 = 🐉?",
+      "Improvising the next part of the story...",
+      "Bleep Bloop. Yes.",
+      "Is it really a toll payment if the alternative is death?",
+      "🦙",
+      "Hello there, friend. See you soon.",
+      "Wow",
+      "Finding where we left that...",
+      "Please wait, constructing a new game.",
+      "Congrats! You are the 1000th customer of the day.",
+      "Ooooh, I'm not sure if that was the best move...",
+      "Enjoying the game? Good.",
+      "Thanks for Playing!",
+      "WebMMO? More Like WebMOO, am I right?",
+      "You know what, never mind."
     ]
     if(!status) {
       //If the callback is received (fast internet, empty server, etc) then it's possible that the 
@@ -516,14 +538,18 @@ function awardLoot(id) {
       loadingScreen.hide();
     }
     else {
+      document.getElementById('loading-screen-text').innerText = loadingScreenTexts[getRandomInt(loadingScreenTexts.length-1)];
       loadingScreen = new bootstrap.Modal(document.getElementById('loading-screen'), {
         keyboard: false, backdrop: "static"
       })
+      
       loadingScreen.show();
     }
 
   }
 
+  //Get a random int in range of 0 to max.
   function getRandomInt(max) {
     return Math.floor(Math.random() * max);
   }
+
