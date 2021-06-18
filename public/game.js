@@ -150,6 +150,7 @@
           })
         })
         db.collection("users").doc(getUserID())
+        //This snapshot contains all user data for our user.
         .onSnapshot((doc) => {
           getClassData().then((data) => {
             classData = data;
@@ -168,6 +169,51 @@
           initLocations();
           })
         });
+        db.collection('data').doc('quests').get().then((doc) => {
+          let data = doc.data();
+          let keys = Object.keys(doc.data())
+          $('#hero-quests-list').html('<p></p>');
+          keys.forEach((key) => {
+            let quest = data[key];
+            //Check level requirements.
+            if(quest.lvl_requirement <= heroData.level) {
+              let hasRequirements = true;
+              //Check quest requirements.
+              quest.quest_requirements.forEach((element) => {
+                if(!heroData.quests_completed.includes(element)) hasRequirements = false;
+              })
+              if(hasRequirements)
+              {
+                //Build objective text string
+                let objectives = `<ul class=list-group">`;
+                let targets = quest.killtargets;
+                targets.forEach((target) => {
+                  objectives = objectives + `<li class="list-group-item"><b>Kill: </b>${target.quantity}x ${target.name}</li>`;
+                })
+                objectives = objectives + "</ul>"
+                //Build quest rewards text string
+                let rewardText = `<ul class=list-group">`;
+                let rewards = quest.rewards
+                rewards.forEach((reward) => {
+                  rewardText = rewardText + `<li class="list-group-item"><b>Reward: </b>${reward.quantity}x ${reward.id}</li>`;
+                })
+                rewardText = rewardText + "</ul>"
+                
+                
+                //Build full item.
+                $('#hero-quests-list').append(`
+                <ul class=list-group"><b>${key}</b>
+                <li class="list-group-item"><b>Quest Giver:</b> ${quest.quest_giver}</li>
+                <li class="list-group-item"><b>Quest Description:</b> ${quest.description}</li>
+                <li class="list-group-item"><b>Quest Objectives:</b> ${objectives}</li>
+                <li class="list-group-item"><b>Quest Rewards:</b> ${rewardText}</li>
+                </ul>
+                `)
+              } 
+            }
+          })
+      })
+
       }
 
     //Display the character's inventory.
