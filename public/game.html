@@ -81,7 +81,6 @@
         <div class="nav nav-tabs" id="nav-tab" role="tablist">
           <button class="nav-link active" id="nav-info-hero-tab" data-bs-toggle="tab" data-bs-target="#nav-info-hero" type="button" role="tab" aria-controls="nav-info-hero" aria-selected="true">Hero Info</button>
           <button class="nav-link" id="nav-info-inventory-tab" data-bs-toggle="tab" data-bs-target="#nav-info-inventory" type="button" role="tab" aria-controls="nav-info-inventory" aria-selected="false">Inventory</button>
-          <button class="nav-link" id="nav-info-quests-tab" data-bs-toggle="tab" data-bs-target="#nav-info-quests" type="button" role="tab" aria-controls="nav-info-quests" aria-selected="false">Quests</button>
         </div>
       </nav>
       <div class="tab-content" id="nav-tabContent">
@@ -119,29 +118,34 @@
           <p></p>
           <li class="list-group-item"><ul id="hero-inventory-list" class="list-group"></ul></li>
         </div>
-        <!-- Quests-->
-        <div class="tab-pane fade" id="nav-info-quests" role="tabpanel" aria-labelledby="nav-info-quests-tab">
-          <p></p>
-          <h5>Quests: </h5>
-          <p></p>
-          <li class="list-group-item"><ul id="hero-quests-list" class="list-group"></ul></li>
-        </div>
       </div>
     </div>
     <div class="middlepane">
       <!-- Start of the middle panel-->
       <nav>
         <div class="nav nav-tabs" id="nav-tab" role="tablist">
-          <button class="nav-link active" id="nav-game-tab" data-bs-toggle="tab" data-bs-target="" type="button" role="tab" aria-controls="" aria-selected="true">Game</button>
-          </div>
+          <button class="nav-link active" id="nav-menu-game-tab" data-bs-toggle="tab" data-bs-target="#nav-menu-game" type="button" role="tab" aria-controls="nav-menu-game" aria-selected="true">Game</button>
+          <button class="nav-link" id="nav-game-quests-tab" data-bs-toggle="tab" data-bs-target="#nav-game-quests" type="button" role="tab" aria-controls="nav-game-quests" aria-selected="false">Quests</button>
+        </div>
       </nav>
+      <!-- Game Tab -->
+      <div class="tab-content" id="nav-tabContent">
+        <div class="tab-pane fade show active" id="nav-menu-game" role="tabpanel" aria-labelledby="nav-menu-game-tab">
+          <nav>
+            <div class="nav nav-tabs" id="nav-tab" role="tablist">
+              <button class="nav-link active" id="nav-menu-game-location-tab" data-bs-toggle="tab" data-bs-target="#nav-menu-game-location" type="button" role="tab" aria-controls="nav-menu-game-location" aria-selected="true">Location</button>
+              <button class="nav-link" id="nav-game-stores-tab" data-bs-toggle="tab" data-bs-target="#nav-menu-game-stores" type="button" role="tab" aria-controls="nav-menu-game-stores" aria-selected="false">Stores</button>
+            </div>
+          </nav>
+        <div class="tab-content" id="nav-tabContent">
+          <!-- Current Location -->
+          <div class="tab-pane fade show active" id="nav-menu-game-location" role="tabpanel" aria-labelledby="nav-menu-game-location-tab">
           <h2>
             <div id="current-location-text"></div>
           </h2>
-          
-          <h3>
-            <div id="current-location-time"></div>
-          </h3>
+          <h5>
+            <div id="current-location-description"></div>
+          </h5>
           <p>
           <div id="current-location-players-amount-text">There are currently 0 players in the Town Center.</div>
           <p></p>
@@ -162,13 +166,21 @@
             <ul id="current-location-enemies-list" class="list-group">
             </ul>
           </p>
-          <p></p>
-          <hr></hr>
-          <h5>Items Available Here: </h5>
-            <ul id="current-location-items" class="list-group">
-              <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top" onClick="addItemToInventory(1, 1);" title="Restores 10 health.">Buy Health Potion <span class="badge bg-info">10 Gold</span></li>
-            </ul>
-          </p>
+          </div>
+          <!-- Stores -->
+          <div class="tab-pane fade" id="nav-menu-game-stores" role="tabpanel" aria-labelledby="nav-menu-game-stores-tab">
+            <button class="btn btn-primary" type="button" onClick='addItemToInventory("Gold", 10)'>Add 10 Gold</button>
+          </div>
+        </div>
+        </div>
+      <!-- Quest Tab -->
+        <div class="tab-pane fade" id="nav-game-quests" role="tabpanel" aria-labelledby="nav-game-quests-tab">
+        <p></p>
+        <h5>Quests: </h5>
+        <p></p>
+        <li class="list-group-item"><ul id="hero-quests-list" class="list-group"></ul></li>
+      </div>
+    </div>
       <!-- End of the middle panel-->
     </div>
     <div class="rightpane">

@@ -1,0 +1,575 @@
+<!-- Copyright 2021 Justin Van Oort. All Rights Reserved. -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WebMMO Admin Console</title>
+  <script type="text/javascript" src="https://cdn.applixir.com/applixir.sdk3.0m.js"></script>   
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+  <link rel="stylesheet" href="style.css">
+  </link>
+  <!-- let's initialize firebase features -->
+  <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+  <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-app.js"></script>
+  <!-- If you enabled Analytics in your project, add the Firebase SDK for Analytics -->
+  <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-analytics.js"></script>
+  <!-- Add Firebase products that you want to use -->
+  <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-functions.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-messaging.js"></script>
+  <script src="config.js"></script>
+  <script src="common.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/ui/4.7.3/firebase-ui-auth.js"></script>
+  <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.7.3/firebase-ui-auth.css" />
+  <!-- Font used by this page-->
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
+    crossorigin="anonymous"></script>
+  <script src="toastr.min.js"></script>
+  <link href="toastr.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.3.2/dist/chart.min.js"></script>
+  <script>
+    //Setup tooltips.
+    $(document).ready(function () {
+      $("body").tooltip({ selector: '[data-toggle=tooltip]' });
+    });
+  </script>
+
+
+</head>
+<body>
+    <!-- Header -->
+    <nav class="navbar navbar-light bg-light">
+    <span class="navbar-brand mb-0 h2">WebMMO Admin Console</span>
+    </nav>
+    <!-- Start of the admin console-->
+    <nav>
+    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+        <button class="nav-link active" id="nav-info-locations-tab" data-bs-toggle="tab" data-bs-target="#nav-info-locations" type="button" role="tab" aria-controls="nav-info-locations" aria-selected="true">Locations</button>
+        <button class="nav-link" id="nav-info-quests-tab" data-bs-toggle="tab" data-bs-target="#nav-info-quests" type="button" role="tab" aria-controls="nav-info-quests" aria-selected="false">Quests</button>
+        <button class="nav-link" id="nav-info-items-tab" data-bs-toggle="tab" data-bs-target="#nav-info-items" type="button" role="tab" aria-controls="nav-info-items" aria-selected="false">Items</button>
+        <button class="nav-link" id="nav-info-enemies-tab" data-bs-toggle="tab" data-bs-target="#nav-info-enemies" type="button" role="tab" aria-controls="nav-info-enemies" aria-selected="false">Enemies</button>
+        <button class="nav-link" id="nav-info-enemy-stats-tab" data-bs-toggle="tab" data-bs-target="#nav-info-enemy-stats" type="button" role="tab" aria-controls="nav-info-enemy-stats-tab" aria-selected="false">Enemy Stats</button>
+      </div>
+    </nav>
+    <div class="tab-content" id="nav-tabContent">
+    <!-- Locations -->
+    <div class="tab-pane fade show active" id="nav-info-locations" role="tabpanel" aria-labelledby="nav-info-locations-tab">
+        <ul id="location-list" class="list-group"></ul>
+        <hr>
+        <p>
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#newlocwizard" aria-expanded="false" aria-controls="newlocwizard">
+              Open New Location Wizard
+            </button>
+          </p>
+          <div class="collapse" id="newlocwizard">
+              <h5>Create New Location:</h5>
+            <form>
+                <div class="form-group">
+                  <label for="loc-wizard-name">Name</label>
+                  <input type="text" class="form-control" id="loc-wizard-name" placeholder="">
+                  <label for="loc-wizard-description">Description</label>
+                  <input type="text" class="form-control" id="loc-wizard-description" placeholder="">
+                  <label for="loc-wizard-order">Order</label>
+                  <input type="number" class="form-control" id="loc-wizard-order" placeholder="5">
+                  <label for="loc-wizard-enemies">Enemies</label>
+                  <select multiple class="form-control" id="loc-wizard-enemies">
+                  </select>
+                  <label for="loc-wizard-level">Level Requirement</label>
+                  <input type="number" class="form-control" id="loc-wizard-level" placeholder="">
+                </div>
+                <p></p>
+                <button type="button" onClick="submitLocation()" class="btn btn-primary">Submit</button>
+              </form>
+            <div class="card card-body">
+          </div>
+    </div>
+    </div>
+
+    <!-- Quests -->
+    <div class="tab-pane fade" id="nav-info-quests" role="tabpanel" aria-labelledby="nav-info-quests-tab">
+      <p></p>
+      <ul id="quest-list" class="list-group"></ul>
+      <hr>
+      <p>
+          <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#newquestwizard" aria-expanded="false" aria-controls="newquestwizard">
+            Open New Quest Wizard
+          </button>
+        </p>
+        <div class="collapse" id="newquestwizard">
+            <h5>Create New Quest:</h5>
+          <form>
+              <div class="form-group">
+                <label for="quest-wizard-name">Name</label>
+                <input type="text" class="form-control" id="quest-wizard-name" placeholder="">
+                <label for="quest-wizard-questgiver">Quest Giver</label>
+                <input type="text" class="form-control" id="quest-wizard-questgiver" placeholder="">
+                <label for="quest-wizard-description">Description</label>
+                <input type="text" class="form-control" id="quest-wizard-description" placeholder="">
+                <label for="quest-wizard-enemies">Enemies</label>
+                <select multiple class="form-control" id="quest-wizard-enemies">
+                </select>
+                <label for="quest-wizard-enemies-quantity">Enemies Quantity</label>
+                <input type="number" class="form-control" id="quest-wizard-enemies-quantity" placeholder="2">
+                <label for="quest-wizard-level">Level Requirement</label>
+                <input type="number" class="form-control" id="quest-wizard-level" placeholder="1">
+                <label for="quest-wizard-questrequirements">Quest Requirements</label>
+                <select multiple class="form-control" id="quest-wizard-questrequirements">
+                </select>
+                <label for="quest-wizard-rewards">Rewards</label>
+                <select multiple class="form-control" id="quest-wizard-rewards">
+                </select>
+                <label for="quest-wizard-rewards-quantity">Reward Quantity</label>
+                <input type="number" class="form-control" id="quest-wizard-rewards-quantity" placeholder="1">
+              </div>
+              <p></p>
+              <button type="button" onClick="submitQuest()" class="btn btn-primary">Submit</button>
+            </form>
+          <div class="card card-body">
+        </div>
+  </div>    
+    </div>
+
+    <!-- Items -->
+    <div class="tab-pane fade" id="nav-info-items" role="tabpanel" aria-labelledby="nav-info-items-tab">
+      <p></p>
+      <ul id="items-list" class="list-group"></ul>
+      <hr>
+      <p>
+          <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#newitemwizard" aria-expanded="false" aria-controls="newitemwizard">
+            Open New Item Wizard
+          </button>
+        </p>
+        <div class="collapse" id="newitemwizard">
+            <h5>Create New Item:</h5>
+          <form>
+              <div class="form-group">
+                <label for="item-wizard-name">Name</label>
+                <input type="text" class="form-control" id="item-wizard-name" placeholder="">
+                <label for="item-wizard-tooltip">Tooltip</label>
+                <input type="text" class="form-control" id="item-wizard-tooltip" placeholder="">
+                <label for="item-wizard-category">Category</label>
+                <select id="item-wizard-category" class="form-select" aria-label="Category">
+                </select>
+                <label for="item-wizard-action">Action</label>
+                <input type="text" class="form-control" id="item-wizard-action" aria-describedby="item-wizard-action-help" placeholder="">
+                <div id="item-wizard-action-help" class="form-text">Actions can execute functions within game.js when the player consumes this item.</div>
+                <p></p>
+                <label for="item-wizard-stat">Stat</label>
+                <input type="text" class="form-control" id="item-wizard-stat" aria-describedby="item-wizard-stat-help" placeholder="def+1">
+                <div id="item-wizard-stat-help" class="form-text">Stat can boost certain stats. Currently only stamina, atk and def.</div>
+                <p></p>
+                <label for="item-wizard-value">Value</label>
+                <input type="number" class="form-control" id="item-wizard-value" placeholder="10">
+                <label class="form-check-label" for="item-wizard-sellable">Sellable?</label>
+                <input class="form-check-input" type="checkbox" value="" id="item-wizard-sellable">
+              </div>
+              <p></p>
+              <button type="button" onClick="submitItem()" class="btn btn-primary">Submit</button>
+            </form>
+          <div class="card card-body">
+        </div>
+  </div>       
+    </div>
+
+    <!-- Enemies -->
+    <div class="tab-pane fade" id="nav-info-enemies" role="tabpanel" aria-labelledby="nav-info-enemies-tab">
+      <p></p>
+      <ul id="enemies-list" class="list-group"></ul>
+      <hr>
+      <p>
+          <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#newenemywizard" aria-expanded="false" aria-controls="newenemywizard">
+            Open New Enemy Wizard
+          </button>
+        </p>
+        <div class="collapse" id="newenemywizard">
+            <h5>Create New Item:</h5>
+          <form>
+              <div class="form-group">
+                <label for="enemy-wizard-name">Name</label>
+                <input type="text" class="form-control" id="enemy-wizard-name" placeholder="">
+
+                <label for="enemy-wizard-baseattack">Base Attack</label>
+                <input type="number" class="form-control" id="enemy-wizard-baseattack" oninput="calculateEnemyDifficulty()" placeholder="1">
+
+                <label for="enemy-wizard-baseattack-min">Base Attack Min</label>
+                <input type="number" class="form-control" id="enemy-wizard-baseattack-min" oninput="calculateEnemyDifficulty()" placeholder="1">
+
+                <label for="enemy-wizard-baseattack-max">Base Attack Max</label>
+                <input type="number" class="form-control" id="enemy-wizard-baseattack-max" oninput="calculateEnemyDifficulty()" placeholder="1">
+
+                <label for="enemy-wizard-health">Health</label>
+                <input type="number" class="form-control" id="enemy-wizard-health" oninput="calculateEnemyDifficulty()" placeholder="10">
+
+                <label for="enemy-wizard-difficulty">Difficulty</label>
+                <input type="number" class="form-control" aria-describedby="enemy-wizard-difficulty-label" id="enemy-wizard-difficulty" placeholder="0" disabled>
+                <div id="enemy-wizard-difficulty-label" class="form-text">Difficulty is a automatic calculation done to indicate how fierce an enemy may be. It is also an indicator for XP.</div>
+              
+                <label for="enemy-wizard-xp">XP</label>
+                <input type="number" class="form-control" id="enemy-wizard-xp" placeholder="0">
+
+                <label for="enemy-wizard-gold">Gold rewarded</label>
+                <input type="number" class="form-control" id="enemy-wizard-gold" placeholder="0">
+              </div>
+              <p></p>
+              <button type="button" onClick="submitEnemy()" class="btn btn-primary">Submit</button>
+            </form>
+          <div class="card card-body">
+        </div>
+  </div>  
+    </div>
+
+    <!-- Enemy Difficulty Curve-->
+    <div class="tab-pane fade" id="nav-info-enemy-stats" role="tabpanel" aria-labelledby="nav-info-enemy-stats-tab">
+      <p></p>
+      <div class=".container-lg">
+        <canvas id ='myChart' width="521" height="260" style="display: block; box-sizing: border-box; height: 260px; width: 521px;"></canvas>
+        <script>
+        db.collection('data').doc('enemies').get().then((doc) => {
+        let data = doc.data();
+        let keys = Object.keys(doc.data())
+        let objects = []
+        keys.forEach((key) => {
+          let averageAttack = Number(data[key].base_attack) + ((Number(data[key].base_attack_min) + Number(data[key].base_attack_max))/2);
+          let difficulty = Number(data[key].health) * averageAttack;
+          let object = {name: key, difficulty: difficulty, reward: Number(data[key].xp), expectedReward: Number(difficulty/5)}
+          objects.push(object);
+        })
+      objects = objects.sort(dynamicSort("difficulty"));
+      let objectKeys = Object.keys(objects)
+      let names = [];
+      let difficulties = [];
+      let rewards = [];
+      let expectedrewards = [];
+      objectKeys.forEach((element) => {
+        names.push(objects[element].name);
+        difficulties.push(objects[element].difficulty)
+        rewards.push(objects[element].reward)
+        expectedrewards.push(objects[element].expectedReward);
+      })
+      var ctx = document.getElementById('myChart').getContext('2d');
+      var myChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+              labels: names,
+              datasets: [{
+                  label: 'Difficulty',
+                  data: difficulties,
+                  backgroundColor: [
+                      'rgba(255, 99, 132, 0.2)'
+                  ],
+                  borderColor: [
+                      'rgba(255, 99, 132, 1)'
+                  ],
+                  borderWidth: 1
+              },
+              {
+                  label: 'XP Reward',
+                  data: rewards,
+                  backgroundColor: [
+                      'rgba(99, 255, 132, 0.2)'
+                  ],
+                  borderColor: [
+                      'rgba(99, 255, 132, 1)'
+                  ],
+                  borderWidth: 1
+            },
+            {
+                  label: 'Expected XP Reward',
+                  data: expectedrewards,
+                  backgroundColor: [
+                      'rgba(132, 99, 255, 0.2)'
+                  ],
+                  borderColor: [
+                      'rgba(132, 99, 255, 1)'
+                  ],
+                  borderWidth: 1
+            }]
+          },
+          options: {
+              scales: {
+                  y: {
+                      beginAtZero: true
+                  }
+              }
+          },
+          plugins: {
+            title: {
+                display: true,
+                text: 'Enemy Difficulty Curve'
+            }
+          }
+      });
+    })
+      </script> 
+    </div>
+  </div>
+</body>
+
+<script src="app.js"></script>
+<script src="game.js"></script>
+<script>
+
+//Setup the screens:
+setupLocations();
+setupEnemiesForWizards();
+setupQuests();
+setupQuestsForWizards();
+setupItemsForWizards();
+setupItems();
+setupItemCategoriesForWizards();
+setupEnemies();
+
+//Functions for admin console.
+function setupLocations() {
+        $('#location-list').html('<p></p>');
+        const locRefs = db.collection("locations").orderBy("order", "asc");
+        locRefs.get().then((query) => {
+            query.forEach((doc) => {
+                const locationString = ` <ul class='list-group'><b><h5>${doc.id}</h5></b>
+                    <li class='list-group-item'><b>Description:</b> ${doc.data().description}</li>
+                    <li class='list-group-item'><b>Enemies:</b> ${doc.data().enemies}</li>
+                    <li class='list-group-item'><b>Level Requirement:</b> ${doc.data().lvl_requirement}</li>
+                    <li class='list-group-item'><b>Draw Order:</b> ${doc.data().order}</li>
+                    </ul><p></p>`
+                $('#location-list').append(locationString); 
+            })
+        })    
+    }
+function setupEnemiesForWizards() {
+    db.collection('data').doc('enemies').get().then((doc) => {
+        let keys = Object.keys(doc.data())
+        keys.forEach((key) => {
+            $('#loc-wizard-enemies').append(`<option>${key}</option>`);
+            $('#quest-wizard-enemies').append(`<option>${key}</option>`);
+        })
+    })
+}
+function submitLocation() {
+    let name = $('#loc-wizard-name').val();
+    let description = $('#loc-wizard-description').val();
+    let order = $('#loc-wizard-order').val();
+    let enemies = $('#loc-wizard-enemies').val();
+    let levelreq = $('#loc-wizard-level').val();
+    db.collection('locations').doc(name).set({
+        description: description,
+        order: order,
+        enemies: enemies,
+        lvl_requirement: levelreq,
+        players: []
+    })
+    .then(() => {
+        window.location = 'admin.html';
+    })
+    .catch((err) => {
+        console.log(err);
+    })
+}
+function setupQuests() {
+  db.collection('data').doc('quests').get().then((doc) => {
+        let data = doc.data();
+        let keys = Object.keys(doc.data())
+        keys.forEach((key) => {
+          let killTargets = data[key].killtargets;
+          killTargets = JSON.stringify(killTargets);
+          let rewards = data[key].rewards;
+          rewards = JSON.stringify(rewards);
+            $('#quest-list').append(` <ul class='list-group'><b><h5>${key}</h5></b>
+              <li class='list-group-item'><b>Quest Giver:</b> ${data[key].quest_giver}</li>
+              <li class='list-group-item'><b>Description:</b> ${data[key].description}</li>
+              <li class='list-group-item'><b>Level Requirement:</b> ${data[key].lvl_requirement}</li>
+              <li class='list-group-item'><b>Quest Requirements:</b> ${data[key].quest_requirements}</li>
+              <li class='list-group-item'><b>Kill Targets:</b>${killTargets}</li>
+              <li class='list-group-item'><b>Rewards:</b> ${rewards}</li>
+                    </ul><p></p>`);
+        })
+    })
+}
+function setupQuestsForWizards() {
+    db.collection('data').doc('quests').get().then((doc) => {
+        let keys = Object.keys(doc.data())
+        keys.forEach((key) => {
+            $('#quest-wizard-questrequirements').append(`<option>${key}</option>`);
+        })
+    })
+}
+function submitQuest() {
+    let name = $('#quest-wizard-name').val();
+    let description = $('#quest-wizard-description').val();
+    let questgiver = $('#quest-wizard-questgiver').val();
+    let enemies = $('#quest-wizard-enemies').val();
+    let enemiesquantity = $('#quest-wizard-enemies-quantity').val();
+    let levelreq = $('#quest-wizard-level').val();
+    let questreq = $('#quest-wizard-questrequirements').val();
+    let rewards = $('#quest-wizard-rewards').val();
+    let rewardQuantity = $('#quest-wizard-rewards-quantity').val();
+    let enemyObject = [];
+    enemies.forEach((element) => {
+      enemyObject.push({name: element, quantity: enemiesquantity});
+    })
+    let rewardObject = [];
+    rewards.forEach((element) => {
+      rewardObject.push({id: element, quantity: rewardQuantity})
+    })
+    let object = {
+      description: description,
+      quest_giver: questgiver,
+      lvl_requirement: levelreq,
+      quest_requirements: questreq,
+      killtargets: enemyObject,
+      rewards: rewardObject
+    }
+    db.collection('data').doc('quests').set({
+        [name]: object
+    },{ merge: true })
+    .then(() => {
+        window.location = 'admin.html';
+    })
+    .catch((err) => {
+        console.log(err);
+    })
+}
+function setupItemsForWizards() {
+  db.collection('data').doc('items').get().then((doc) => {
+        let keys = Object.keys(doc.data())
+        keys.forEach((key) => {
+            $('#quest-wizard-rewards').append(`<option>${key}</option>`);
+        })
+    }) 
+}
+function setupItems() {
+  db.collection('data').doc('items').get().then((doc) => {
+        let data = doc.data();
+        let keys = Object.keys(doc.data())
+        keys.forEach((key) => {
+            $('#items-list').append(` <ul class='list-group'><b><h5>${key}</h5></b>
+              <li class='list-group-item'><b>Tooltip:</b> ${data[key].tooltip}</li>
+              <li class='list-group-item'><b>Action:</b> ${data[key].action}</li>
+              <li class='list-group-item'><b>Value:</b> ${data[key].value}</li>
+              <li class='list-group-item'><b>Sellable:</b> ${data[key].sellable}</li>
+                    </ul><p></p>`);
+        })
+    })  
+}
+function submitItem() {
+  let name = $('#item-wizard-name').val();
+  let tooltip = $('#item-wizard-tooltip').val();
+  let category = $('#item-wizard-category').val();
+  let action = $('#item-wizard-action').val();
+  let value = $('#item-wizard-value').val();
+  let sellable = $('#item-wizard-sellable').prop('checked');
+  let stat = $('#item-wizard-stat').val();
+  let object = {
+      tooltip: tooltip,
+      category: category,
+      action: action,
+      value: value,
+      sellable, sellable,
+      stat: stat
+    }
+    object = prepObject(object)
+
+    db.collection('data').doc('items').update({
+        [name]: object
+    },{ merge: true })
+    .then(() => {
+        window.location = 'admin.html';
+    })
+    .catch((err) => {
+        console.log(err);
+    })
+}
+function setupItemCategoriesForWizards(){
+  db.collection('data').doc('itemcategories').get().then((doc) => {
+        let keys = Object.keys(doc.data());
+        keys.forEach((key) => {
+          let subkeys = Object.values(doc.data()[key]);
+            subkeys.forEach((subkey) => {
+              $('#item-wizard-category').append(`<option>${key}-${subkey}</option>`);
+            })
+            
+        })
+    }) 
+}
+function setupEnemies(){
+  db.collection('data').doc('enemies').get().then((doc) => {
+        let data = doc.data();
+        let keys = Object.keys(doc.data())
+        let difficultyCurve = [];
+        keys.forEach((key) => {
+          let rewards = data[key].rewards;
+          rewards = JSON.stringify(rewards);
+          let averageAttack = Number(data[key].base_attack) + ((Number(data[key].base_attack_min) + Number(data[key].base_attack_max))/2);
+          let difficulty = Number(data[key].health) * averageAttack;
+          $('#enemies-list').append(` <ul class='list-group'><b><h5>${key}</h5></b>
+              <li class='list-group-item'><b>Base Attack:</b> ${data[key].base_attack}</li>
+              <li class='list-group-item'><b>Random Attack:</b> ${data[key].base_attack_min} to ${data[key].base_attack_max} damage.</li>
+              <li class='list-group-item'><b>Average Attack:</b> ${averageAttack}</li>
+              <li class='list-group-item'><b>Difficulty:</b> ${difficulty}</li>
+              <li class='list-group-item'><b>Health:</b> ${data[key].health}</li>
+              <li class='list-group-item'><b>XP:</b> ${data[key].xp}</li>
+              <li class='list-group-item'><b>Rewards:</b> ${rewards}</li>
+                    </ul><p></p>`);   
+        })
+    })
+}
+function dynamicSort(property) {
+    var sortOrder = 1;
+    if(property[0] === "-") {
+        sortOrder = -1;
+        property = property.substr(1);
+    }
+    return function (a,b) {
+        /* next line works with strings and numbers, 
+         * and you may want to customize it to your needs
+         */
+        var result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
+        return result * sortOrder;
+    }
+}
+function submitEnemy() {
+  let name = $('#enemy-wizard-name').val();
+  let base_attack = Number($('#enemy-wizard-baseattack').val());
+  let base_attack_min = Number($('#enemy-wizard-baseattack-min').val());
+  let base_attack_max = Number($('#enemy-wizard-baseattack-max').val());
+  let health = Number($('#enemy-wizard-health').val());
+  let xp = Number($('#enemy-wizard-xp').val());
+  let gold = {i: "Gold", q: Number($('#enemy-wizard-gold').val())}
+  let object = {
+      base_attack: base_attack,
+      base_attack_min: base_attack_min,
+      base_attack_max: base_attack_max,
+      health: health,
+      rewards: gold,
+      xp: xp
+    }
+    object = prepObject(object)
+
+    db.collection('data').doc('enemies').update({
+        [name]: object
+    },{ merge: true })
+    .then(() => {
+        window.location = 'admin.html';
+    })
+    .catch((err) => {
+        console.log(err);
+    })
+}
+function calculateEnemyDifficulty() {
+  let averageAttack = Number($('#enemy-wizard-baseattack').val()) + ((Number($('#enemy-wizard-baseattack-min').val()) + Number($('#enemy-wizard-baseattack-max').val()))/2)
+  let health = Number($('#enemy-wizard-health').val())
+  let difficulty = averageAttack * health;
+  $('#enemy-wizard-difficulty').val(difficulty);
+  $('#enemy-wizard-xp').val(difficulty/5);
+}
+
+</script>
+</html>

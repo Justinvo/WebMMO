@@ -21,7 +21,8 @@
     storageBucket: "webmmo-jvanoort.appspot.com",
     messagingSenderId: "215097629690",
     appId: "1:215097629690:web:ab8803d6c1f0b040102243",
-    measurementId: "G-FCBTJM4J0J"
+    measurementId: "G-FCBTJM4J0J",
+    ignoreUndefinedProperties: true
   };
   // Initialize Firebase and firestore db object.
   firebase.initializeApp(firebaseConfig);

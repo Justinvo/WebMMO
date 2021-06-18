@@ -63,7 +63,7 @@ body, html {
   }
 
   .list-group{
-    max-height: 300px;
+    max-height: 1250px;
     margin-bottom: 10px;
     overflow-x:auto;
     overflow-y:scroll;

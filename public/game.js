@@ -72,8 +72,7 @@
                         $('#game-menu-location-list').append(buttonString); 
                 }
             })
-        })
-         
+        })    
     }
     
     //Change the current location of the player.
@@ -99,6 +98,10 @@
       locRef.update({
         players: firebase.firestore.FieldValue.arrayUnion(getUserID())
       });
+      //Add the description of this location.
+      db.collection('locations').doc(currentLocation).get().then((locDesc) => {
+        (document.getElementById('current-location-description')).innerText = locDesc.data().description;
+      })
       //Keep track of how many players are here. Auto updates if this changes.
       let locAmountText = document.getElementById("current-location-players-amount-text");
       locAmountSubscription = db.collection("locations").doc(currentLocation)
@@ -172,11 +175,12 @@
       //Clear the inventory list first
       $('#hero-inventory-list').html('<p></p>');
       inventory.forEach( element => {
-        let n = element.n;
-        let q = element.q;
-        let t = element.t;
-        let a = element.a;
+        let n = element.id;
+        let q = element.quantity;
+        let t = element.tooltip;
+        let a = element.action;
         if(t == null || t == undefined) t = "";
+        if(a == null || a == undefined) t = "";
         $('#hero-inventory-list').append(`<li class="list-group-item" data-toggle="tooltip" data-bs-placement="top" onClick='addItemToInventory(${element.i}, -1); onClick=${a};'
         title="${t}">${n} <span class="badge bg-info">x${q}
       </span></li>`);  
@@ -213,35 +217,40 @@
     // HELPER FUNCTIONS //
     //////////////////////
 
-    //TODO: Move to server-side.
     //Add an item to a inventory, grab data from server. Can be used with negative values to remove items. Will wipe item if final quantity reaches <1
     function addItemToInventory(id, quantity) {
-      const itemRef = db.collection("data").doc("items").get()
+      db.collection("data").doc("items").get()
         .then((doc) => {
           let item = doc.data()[id];
-          if(quantity > 0) toastr.success(`You received: ${quantity}x ${item.name}`, 'Item Gained!');
+          if(quantity > 0) toastr.success(`You received: ${quantity}x ${id}`, 'Item Gained!');
           //Now that we have our item data from the server, let's add it to our inventory.
           let playerRef = db.collection('users').doc(getUserID())
           playerRef.get().then((doc) => {
             //If we have no inventory, add it.
             if(doc.data().inventory[0] == null) {
-              let object = { i: id, q: quantity, n: item.name, a: item.action, t: item.tooltip};
+              let object = {quantity: Number(quantity), id: id, action: item.action, tooltip: item.tooltip, sellable: item.sellable, value: item.value};
+              object = prepObject(object);
+              let array = [object];
                 return playerRef.update({
-                  inventory: firebase.firestore.FieldValue.arrayUnion(object)
+                  inventory: array
                 });
             }
             else{
-            //Try to find the item in our inventory first.
-            let index = -1;
-            doc.data().inventory.forEach(element => {
-              index++
-              if(element.i == id) {
               //If this item was already in our inventory, change the quantity.
               let inventory = doc.data().inventory;
-              if(quantity+inventory[index].q > 0)
+              let counter = -1;
+              let index = -1;
+              inventory.forEach((element) => {
+                counter++
+                if(element.id == id) {
+                  index = counter;
+                }
+              }) 
+              if(quantity+inventory[counter].quantity > 0)
               {
-                let object = { i: id, q: quantity+inventory[index].q, n: item.name, a: item.action, t: item.tooltip };
-                inventory[index] = object;
+                let object = { id: id, quantity: Number(quantity)+Number(inventory[counter].quantity), action: item.action, tooltip: item.tooltip, value: item.value};
+                object = prepObject(object);
+                inventory[counter] = object;
                 return playerRef.update({
                   inventory: inventory
                 })
@@ -255,17 +264,9 @@
                   })
                 }
               }
-              else {
-                let object = { i: id, q: quantity, n: item.name, a: item.action, t: item.tooltip };
-                return playerRef.update({
-                  inventory: firebase.firestore.FieldValue.arrayUnion(object)
-                });
-              }
           })
-            }
-        });
-      })
-    }
+            })
+          }
 
     //Get the current userID, that is returned from firestore auth. Only available after initGame()
     function getUserID() {
@@ -277,30 +278,10 @@
         return firebase.auth().currentUser;
     }
 
-    //Get time zone object.
-    function getTime() {
-        // Get JSON object
-        $.getJSON('http://worldtimeapi.org/api/timezone/Europe/Amsterdam', function (data) {
-          date = new Date(data.datetime)
-          document.getElementById('current-location-time').innerText = date.toUTCString();
-          setInterval(updateTime, 1000);
-
-        });
-    }
-
-    //update time zone object.
-    function updateTime() {
-      let n = date.valueOf()
-      n = n+1000;
-      date = new Date(n);
-      document.getElementById('current-location-time').innerText = date.toUTCString();
-    }
-
     //Get class data
     async function getClassData() {
       let doc = await db.collection("data").doc("stats").get();
       return doc.get(heroData.class);
-      throw new Error("No such document");
   }
 
   //Get health object that has our current health and max health.
@@ -333,7 +314,7 @@
           let i = 2;
           for(i; i < 7; i++)
           {
-            if(xpdata[i] < userdoc.data().xp) {
+            if(xpdata[i] <= userdoc.data().xp) {
               level++
             }
           }
@@ -349,15 +330,16 @@
 
   //Feedback for if the player levelled up.
   function playerLevelUp(newLevel) {
-    toastr.success(`You received: ${quantity}x ${item.name}`, 'Item Gained!');
+    toastr.success(`<b>Congrats! You have leveled up and are now ${newLevel}!</b>`, 'Level up!');
   }
 
   //Start a battle
   function startBattle(enemy) {
     toggleLoadingState(true);
+    if(getHealth().current <= 0) toastr.warning("You can't start a battle while being unconscious. Regain health by paying a priest or by watching an ad in the game options.", "Hold up there...")
       //Check that our player is not currently in a fight.
   db.collection('fights').doc(getUserID()).get().then((doc) => {
-    if(doc.exists) { 
+    if(doc.exists || getHealth().current <= 0) { 
       toggleLoadingState(false);
     }
     else {
@@ -437,6 +419,7 @@ function attackInBattle(damage) {
 function checkBattleProgress() {
   const uid = getUserID();
   db.collection('fights').doc(uid).get().then((doc) => {
+    //Enemy has died! Victory:
     if(doc.data().health_enemy <= 0) {
       db.collection('fights').doc(uid).update({
         log: firebase.firestore.FieldValue.arrayUnion(`<b>${doc.data().log.length+1}: Hero</b> has defeated the ${doc.data().enemy} and has gained ${doc.data().xp} XP!`)
@@ -445,14 +428,17 @@ function checkBattleProgress() {
         awardLoot(doc.data().enemy);
         finishBattle();
         toggleLoadingState(false);
+        toastr.success(`Congratulations! You defeated ${doc.data().enemy}.`, 'Victory!');
       });
     }
+    //Hero has died.. Defeat:
     else if(doc.data().health_hero <= 0) {
       db.collection('fights').doc(uid).update({
         log: firebase.firestore.FieldValue.arrayUnion(`<b>${doc.data().log.length+1}: ${doc.data().enemy}</b> has defeated the Hero...`)
       }).then(() => {
         finishBattle();
         toggleLoadingState(false);
+        toastr.error(`Oh no! You have been defeated by ${doc.data().enemy}.`, 'Defeat...');
       });
     }
     else toggleLoadingState(false);
@@ -524,7 +510,8 @@ function awardLoot(id) {
       "Enjoying the game? Good.",
       "Thanks for Playing!",
       "WebMMO? More Like WebMOO, am I right?",
-      "You know what, never mind."
+      "You know what, never mind.",
+      "Hey there!"
     ]
     if(!status) {
       //If the callback is received (fast internet, empty server, etc) then it's possible that the 
@@ -553,3 +540,25 @@ function awardLoot(id) {
     return Math.floor(Math.random() * max);
   }
 
+  //Function to prep a object for upload to firestore
+  function prepObject(object) {
+    object = JSON.stringify(object);
+    object = JSON.parse(object);
+    return object;
+  }
+
+  //Get all active quests for the current player. Filter out completed quests and quests that are not possible to complete right now.
+  function getActiveQuests() {
+    let quests = [];
+    db.collection('data').doc('quests').get((doc) => {
+      doc.forEach((element) => {
+        if(heroData.level >= element.lvl_requirement) {
+          element.quest_requirements.forEach((quest) => {
+            if(heroData.quests_completed.has(quest)) {
+              
+            }
+          })
+        }
+      })
+    })
+  }
