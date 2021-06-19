@@ -66,9 +66,9 @@
     //Add buttons for going to different locations. Lock or Hide certain elements depending on level or quest conditions.
     //TODO: Move conditions into firestore getter.
     function initLocations() {
-        $('#game-menu-location-list').html('<p></p>');
         const locRefs = db.collection("locations").orderBy("order", "asc");
         locRefs.get().then((query) => {
+          $('#game-menu-location-list').html('<p></p>');
             query.forEach((doc) => {
                 let data = doc.data();
                 //First check the level requirement.
@@ -264,6 +264,8 @@
         quests_completed: firebase.firestore.FieldValue.arrayUnion(quest)
       })
       toastr.success(`Congratulations! You have completed the quest ${quest}! Onto the next one!`, 'Quest Completed!');
+      //Update quest info the cheap way.
+      pullCharacterInfo();
     }
 
     //Display the character's inventory.
