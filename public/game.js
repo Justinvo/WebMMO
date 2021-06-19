@@ -184,6 +184,7 @@
           initLocations();
           })
         });
+        //Load quests, filter and display.
         db.collection('data').doc('quests').get().then((doc) => {
           let data = doc.data();
           let keys = Object.keys(doc.data())
@@ -193,17 +194,40 @@
             //Check level requirements.
             if(quest.lvl_requirement <= heroData.level) {
               let hasRequirements = true;
+              //Check if we have already completed this quest.
+              if(heroData.quests_completed.includes(key)) hasRequirements = false;
               //Check quest requirements.
               quest.quest_requirements.forEach((element) => {
                 if(!heroData.quests_completed.includes(element)) hasRequirements = false;
               })
               if(hasRequirements)
               {
+                let questComplete = false;
                 //Build objective text string
                 let objectives = `<ul class=list-group">`;
                 let targets = quest.killtargets;
                 targets.forEach((target) => {
+                  //If we have some progress towards this quest, mark this:
+                  if(heroData.quest_progress[key]) {
+                    if(heroData.quest_progress[key][target.name])
+                    {
+                    objectives = objectives + `<li class="list-group-item"><b>Kill: </b>${target.quantity}x ${target.name} (${heroData.quest_progress[key][target.name]}/${target.quantity})</li>`;
+                    if(heroData.quest_progress[key][target.name] >= target.quantity) { 
+                      questComplete = true; 
+                    }
+                    else {
+                      questComplete = false;
+                    } 
+                  }
+                  else {
+                    objectives = objectives + `<li class="list-group-item"><b>Kill: </b>${target.quantity}x ${target.name}</li>`;
+                    questComplete = false;
+                  }
+                }
+                else{
                   objectives = objectives + `<li class="list-group-item"><b>Kill: </b>${target.quantity}x ${target.name}</li>`;
+                    questComplete = false;
+                }
                 })
                 objectives = objectives + "</ul>"
                 //Build quest rewards text string
@@ -213,6 +237,11 @@
                   rewardText = rewardText + `<li class="list-group-item"><b>Reward: </b>${reward.quantity}x ${reward.id}</li>`;
                 })
                 rewardText = rewardText + "</ul>"
+                //Add button to complete quest if quest is complete:
+                let completeQuestButton = "";
+                if(questComplete) completeQuestButton = `
+                <li class="list-group-item"><button type="button" onClick="completeQuest('${key}')" class="btn btn-success">Complete Quest!</button></li>
+                `
                 //Build full string
                 $('#hero-quests-list').append(`
                 <ul class=list-group"><b>${key}</b>
@@ -220,6 +249,7 @@
                 <li class="list-group-item"><b>Quest Description:</b> ${quest.description}</li>
                 <li class="list-group-item"><b>Quest Objectives:</b> ${objectives}</li>
                 <li class="list-group-item"><b>Quest Rewards:</b> ${rewardText}</li>
+                ${completeQuestButton}
                 </ul>
                 <p></p>
                 `)
@@ -228,6 +258,13 @@
           })
       })
       }
+
+    function completeQuest(quest) {
+      db.collection('users').doc(getUserID()).update({
+        quests_completed: firebase.firestore.FieldValue.arrayUnion(quest)
+      })
+      toastr.success(`Congratulations! You have completed the quest ${quest}! Onto the next one!`, 'Quest Completed!');
+    }
 
     //Display the character's inventory.
     function displayInventory(inventory) {
@@ -531,6 +568,7 @@ function checkBattleProgress() {
         addXP(doc.data().xp);
         awardLoot(doc.data().enemy);
         finishBattle();
+        checkQuestProgress(doc.data().enemy);
         toggleLoadingState(false);
         toastr.success(`Congratulations! You defeated ${doc.data().enemy}.`, 'Victory!');
       });
@@ -547,6 +585,74 @@ function checkBattleProgress() {
     }
     else toggleLoadingState(false);
   });
+}
+
+function checkQuestProgress(enemy) {
+  //TODO: turn quest getter into seperate function and propegate out to other places.
+  //Find quests that we can progress towards.
+  db.collection('data').doc('quests').get().then((doc) => {
+    let data = doc.data();
+    let keys = Object.keys(doc.data())
+    $('#hero-quests-list').html('<p></p>');
+    keys.forEach((key) => {
+      let quest = data[key];
+      //Check level requirements.
+      if(quest.lvl_requirement <= heroData.level) {
+        let hasRequirements = true;
+        //Check quest requirements.
+        quest.quest_requirements.forEach((element) => {
+          if(!heroData.quests_completed.includes(element)) hasRequirements = false;
+        })
+        if(hasRequirements)
+        {
+          //See if we killed any of the targets in the killtargets.
+          let targets = quest.killtargets;
+          targets.forEach((target) => {
+            if(target.name == enemy) {
+              //Log the progress to our users data.
+              //We have to consider a couple different cases here:
+              //-This could be the very first quest the user every progresses towards.
+              //-This could be the first progression the user makes into this quest.
+              //-This could be neither the first quest nor the first progression.
+              //Let's handle those cases here:
+              db.collection('users').doc(getUserID()).get().then((doc) => {
+                //Prep the new quest progress object.
+                let object = {};
+                if(doc.data().quest_progress) {
+                  object = doc.data().quest_progress;
+                  objectKeys = Object.keys(object);
+                  let found = false;
+                  //See if we already have progress towards this quest.
+                  objectKeys.forEach((objectKey) => {
+                    if(object[objectKey][enemy]) {
+                      //We already had progress so increment this.
+                      object[objectKey][enemy] += 1;
+                      found = true;
+                    }
+                    //We had no progress so set this enemy to 1
+                    if(!found) {
+                      object[key] = {[enemy]:1};
+                    }
+                  })
+                }
+                //We had no quest progression at all yet. Create a new object with new data.
+                else {
+                  object = {[key]: {[enemy]: 1}}
+                }
+                //Actually push the info to firestore.
+                db.collection('users').doc(getUserID()).set({
+                  quest_progress: object
+                }, {merge: true})
+              })  
+              //Add a toastr message for the quest progression.
+              toastr.success(`You just progressed in the quest ${key}. Keep it up!`, "Quest Progression");
+            }
+          })
+        } 
+      }
+    })
+})
+
 }
 
 //set the hero's health.
