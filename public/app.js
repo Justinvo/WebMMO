@@ -159,14 +159,8 @@ function getUiConfig() {
    */
   var initApp = function() {
     document.getElementById('sign-out').addEventListener('click', function() {
-      db.collection("locations").where('player', 'array-contains',
-      firebase.auth().currentUser.uid).get().then((doc) => {
-        db.collection("locations").doc(doc).update({
-          players: firebase.firestore.FieldValue.arrayDelete(firebase.auth().currentUser.uid)
-        }).then(() => {
           firebase.auth().signOut();
-        })
-      })
+          window.location = 'index.html'
     });
   };
   

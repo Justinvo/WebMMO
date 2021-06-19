@@ -37,13 +37,28 @@
         //Set health bars
         const enemyhealth = (doc.data().health_enemy / doc.data().health_enemy_max) * 100;
         const herohealth = (doc.data().health_hero / doc.data().health_hero_max) * 100;
-        $('#health-enemy').html(`<div class="progress-bar-striped bg-danger progress-bar-animated" role="progressbar" style="width: ${enemyhealth}%;" aria-valuenow="${enemyhealth}" aria-valuemin="0" aria-valuemax="${doc.data().health_enemy_max}"><div class="text-light">Enemy: ${doc.data().health_enemy}/${doc.data().health_enemy_max}</div></div>`);
-        $('#health-hero').html(`<div class="progress-bar-striped bg-success progress-bar-animated" role="progressbar" style="width: ${herohealth}%;" aria-valuenow="${herohealth}" aria-valuemin="0" aria-valuemax="${doc.data().health_hero_max}"><div class="text-light">Hero: ${doc.data().health_hero}/${doc.data().health_hero_max}</div></div>`);
+        const stamina = (doc.data().stamina / (heroData.level * 4)) * 100;
+        $('#health-enemy').html(`<div class="progress-bar-striped bg-danger progress-bar-animated" role="progressbar" style="width: ${enemyhealth}%;" aria-valuenow="${enemyhealth}" aria-valuemin="0" aria-valuemax="${doc.data().health_enemy_max}"><div class="text-light">Enemy Health: ${doc.data().health_enemy}/${doc.data().health_enemy_max}</div></div>`);
+        $('#health-hero').html(`<div class="progress-bar-striped bg-success progress-bar-animated" role="progressbar" style="width: ${herohealth}%;" aria-valuenow="${herohealth}" aria-valuemin="0" aria-valuemax="${doc.data().health_hero_max}"><div class="text-light">Hero Health: ${doc.data().health_hero}/${doc.data().health_hero_max}</div></div>`);
+        $('#stamina-hero').html(`<div class="progress-bar-striped bg-warning progress-bar-animated" role="progressbar" style="width: ${stamina}%;" aria-valuenow="${doc.data().stamina}" aria-valuemin="0" aria-valuemax="${heroData.level * 4}"><div class="text-light">Hero Stamina: ${doc.data().stamina}/${heroData.level * 4}</div></div>`);
+        //Set battle-log
         //Set battle-log
         const log = doc.data().log;
         $('#battle-log').html('')
         log.forEach((element) => {
           $('#battle-log').append(`<li class='list-group-item'>${element}</li>`);
+        })
+      })
+      //Setup our ability buttons.
+      db.collection('data').doc('stats').get().then((doc) => {
+        db.collection('data').doc('abilities').get().then((abilitydoc) => {
+          $('#attack-light').html(`${heroData.level} Stamina`);
+          $('#attack-heavy').html(`${heroData.level*2} Stamina`);
+          let abilities = doc.data()[heroData.class].abilities;
+          $('#ability-container').html('');
+          abilities.forEach((element) => {
+            $('#ability-container').append(`<button class="btn btn-primary" onClick='${abilitydoc.data()[element].action}' type="button"><b>${abilitydoc.data()[element].stamina} Stamina </b>${element}: ${abilitydoc.data()[element].description}</button>`);
+          })
         })
       })
     }
@@ -198,9 +213,7 @@
                   rewardText = rewardText + `<li class="list-group-item"><b>Reward: </b>${reward.quantity}x ${reward.id}</li>`;
                 })
                 rewardText = rewardText + "</ul>"
-                
-                
-                //Build full item.
+                //Build full string
                 $('#hero-quests-list').append(`
                 <ul class=list-group"><b>${key}</b>
                 <li class="list-group-item"><b>Quest Giver:</b> ${quest.quest_giver}</li>
@@ -208,12 +221,12 @@
                 <li class="list-group-item"><b>Quest Objectives:</b> ${objectives}</li>
                 <li class="list-group-item"><b>Quest Rewards:</b> ${rewardText}</li>
                 </ul>
+                <p></p>
                 `)
               } 
             }
           })
       })
-
       }
 
     //Display the character's inventory.
@@ -376,7 +389,7 @@
 
   //Feedback for if the player levelled up.
   function playerLevelUp(newLevel) {
-    toastr.success(`<b>Congrats! You have leveled up and are now ${newLevel}!</b>`, 'Level up!');
+    toastr.success(`<b>Congrats! You have leveled up and are now level ${newLevel}!</b>`, 'Level up!');
   }
 
   //Start a battle
@@ -398,6 +411,7 @@
           base_attack_max: enemyObject.base_attack_max,
           health_enemy: enemyObject.health, 
           health_hero: getHealth().current, 
+          stamina: Number(heroData.level) * 4,
           health_enemy_max: enemyObject.health,
           health_hero_max: getHealth().max, 
           log: ["<b>1:</b> The battle starts!"], 
@@ -427,23 +441,66 @@
   })
 }
 
-
-
-//Attack in battle
-function attackInBattle(damage) {
+//Attack in battle. Takes damage and staminacost and optional attackDescription.
+function attackInBattle(damage, staminaCost, attackDescription) {
   toggleLoadingState(true);
   const uid = getUserID();
   //Add the damage to the enemy and add a log.
   db.collection('fights').doc(uid).get().then((doc) => {
     if (doc.data().health_enemy != 0 && doc.data().health_hero != 0) {
+      if(doc.data().stamina >= staminaCost) {
+      //regain stamina every turn. Clamp to max and min.
+      let stamina = Number(doc.data().stamina) + (Number(heroData.level) / 2) - staminaCost;
+      if(stamina > heroData.level * 4) stamina = heroData.level * 4;
+      if(stamina < 0) stamina = 0;
+      //deplete enemy health.
       var newenemyhealth = doc.data().health_enemy - damage;
       if(newenemyhealth < 0) newenemyhealth = 0;
-      const enemyDamage = doc.data().base_attack + (getRandomInt(doc.data().base_attack_max - doc.data().base_attack_min))
+      //Calculate enemy damage.
+      const enemyDamage = doc.data().base_attack + (getRandomInt(doc.data().base_attack_max - doc.data().base_attack_min)+doc.data().base_attack_min)
       var newherohealth = doc.data().health_hero - enemyDamage;
       if(newherohealth < 0) newherohealth = 0;
+      //Create new log message.
+      let attackString = "";
+      if(attackDescription) {attackString = `<b>${doc.data().log.length + 1}: Hero</b> attacks ${doc.data().enemy} using ${attackDescription} for ${damage} damage!`}
+      else { attackString = `<b>${doc.data().log.length + 1}: Hero</b> attacks ${doc.data().enemy} for ${damage} damage!`}
       db.collection('fights').doc(uid).update({
         health_enemy: newenemyhealth,
-        log: firebase.firestore.FieldValue.arrayUnion(`<b>${doc.data().log.length + 1}: Hero</b> attacks ${doc.data().enemy} for ${damage} damage!`)
+        stamina: stamina,
+        log: firebase.firestore.FieldValue.arrayUnion(attackString)
+      }).then(() => {
+        //Add the damage to the player and add a log.
+        db.collection('fights').doc(uid).update({
+          health_hero: newherohealth,
+          log: firebase.firestore.FieldValue.arrayUnion(`<b>${doc.data().log.length + 1}: ${doc.data().enemy}</b> attacks Hero for ${enemyDamage} damage!`)
+        }).then(() => {
+          setHeroHealth(newherohealth);
+          checkBattleProgress();
+        });
+      })
+      }
+      else {
+        toastr.warning(`You cannot use this move as you need ${staminaCost} stamina but only have ${doc.data().stamina} stamina available.`, "Can't use that move!")
+        toggleLoadingState(false);
+      }
+    }
+    else {
+      toggleLoadingState(false);
+    }
+  })
+}
+
+function restoreHealthInBattle(health) {
+  toggleLoadingState(true);
+  const uid = getUserID();
+  //Add the damage to the enemy and add a log.
+  db.collection('fights').doc(uid).get().then((doc) => {
+    if (doc.data().health_enemy != 0 && doc.data().health_hero != 0) {
+      const enemyDamage = doc.data().base_attack + (getRandomInt(doc.data().base_attack_max - doc.data().base_attack_min))
+      var newherohealth = doc.data().health_hero - enemyDamage + health;
+      if(newherohealth < 0) newherohealth = 0;
+      db.collection('fights').doc(uid).update({
+        log: firebase.firestore.FieldValue.arrayUnion(`<b>${doc.data().log.length + 1}: Hero</b> heals ${health} points of health!`)
       }).then(() => {
         //Add the damage to the player and add a log.
         db.collection('fights').doc(uid).update({
@@ -460,6 +517,7 @@ function attackInBattle(damage) {
     }
   })
 }
+
 
 //Check if the enemy we are fighting is dead or that the player died.
 function checkBattleProgress() {
@@ -593,18 +651,9 @@ function awardLoot(id) {
     return object;
   }
 
-  //Get all active quests for the current player. Filter out completed quests and quests that are not possible to complete right now.
-  function getActiveQuests() {
-    let quests = [];
-    db.collection('data').doc('quests').get((doc) => {
-      doc.forEach((element) => {
-        if(heroData.level >= element.lvl_requirement) {
-          element.quest_requirements.forEach((quest) => {
-            if(heroData.quests_completed.has(quest)) {
-              
-            }
-          })
-        }
-      })
-    })
+  //Function to clamp inclusively to min and max.
+  function clamp(number,min,max) {
+    if(number >= min && number <= max) return number;
+    if(number < min) return min;
+    if(number > max) return max;
   }
