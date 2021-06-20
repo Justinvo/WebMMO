@@ -37,10 +37,10 @@
         //Set health bars
         const enemyhealth = (doc.data().health_enemy / doc.data().health_enemy_max) * 100;
         const herohealth = (doc.data().health_hero / doc.data().health_hero_max) * 100;
-        const stamina = (doc.data().stamina / (heroData.level * 4)) * 100;
+        const stamina = (doc.data().stamina / 10) * 100;
         $('#health-enemy').html(`<div class="progress-bar-striped bg-danger progress-bar-animated" role="progressbar" style="width: ${enemyhealth}%;" aria-valuenow="${enemyhealth}" aria-valuemin="0" aria-valuemax="${doc.data().health_enemy_max}"><div class="text-light">Enemy Health: ${doc.data().health_enemy}/${doc.data().health_enemy_max}</div></div>`);
         $('#health-hero').html(`<div class="progress-bar-striped bg-success progress-bar-animated" role="progressbar" style="width: ${herohealth}%;" aria-valuenow="${herohealth}" aria-valuemin="0" aria-valuemax="${doc.data().health_hero_max}"><div class="text-light">Hero Health: ${doc.data().health_hero}/${doc.data().health_hero_max}</div></div>`);
-        $('#stamina-hero').html(`<div class="progress-bar-striped bg-warning progress-bar-animated" role="progressbar" style="width: ${stamina}%;" aria-valuenow="${doc.data().stamina}" aria-valuemin="0" aria-valuemax="${heroData.level * 4}"><div class="text-light">Hero Stamina: ${doc.data().stamina}/${heroData.level * 4}</div></div>`);
+        $('#stamina-hero').html(`<div class="progress-bar-striped bg-warning progress-bar-animated" role="progressbar" style="width: ${stamina}%;" aria-valuenow="${doc.data().stamina}" aria-valuemin="0" aria-valuemax="10"><div class="text-light">Hero Stamina: ${doc.data().stamina}/10</div></div>`);
         //Set battle-log
         //Set battle-log
         const log = doc.data().log;
@@ -52,8 +52,6 @@
       //Setup our ability buttons.
       db.collection('data').doc('stats').get().then((doc) => {
         db.collection('data').doc('abilities').get().then((abilitydoc) => {
-          $('#attack-light').html(`${heroData.level} Stamina`);
-          $('#attack-heavy').html(`${heroData.level*2} Stamina`);
           let abilities = doc.data()[heroData.class].abilities;
           $('#ability-container').html('');
           abilities.forEach((element) => {
@@ -428,7 +426,8 @@
 
   //Feedback for if the player levelled up.
   function playerLevelUp(newLevel) {
-    toastr.success(`<b>Congrats! You have leveled up and are now level ${newLevel}!</b>`, 'Level up!');
+    //toastr.success(`<b>Congrats! You have leveled up and are now level ${newLevel}!</b>`, 'Level up!');
+    showLevelUpScreen(newLevel);
   }
 
   //Start a battle
@@ -450,7 +449,7 @@
           base_attack_max: enemyObject.base_attack_max,
           health_enemy: enemyObject.health, 
           health_hero: getHealth().current, 
-          stamina: Number(heroData.level) * 4,
+          stamina: 10,
           health_enemy_max: enemyObject.health,
           health_hero_max: getHealth().max, 
           log: ["<b>1:</b> The battle starts!"], 
@@ -483,14 +482,14 @@
 //Attack in battle. Takes damage and staminacost and optional attackDescription.
 function attackInBattle(damage, staminaCost, attackDescription) {
   toggleLoadingState(true);
-  const uid = getUserID();
+  const uid = getUserID();  
   //Add the damage to the enemy and add a log.
   db.collection('fights').doc(uid).get().then((doc) => {
     if (doc.data().health_enemy != 0 && doc.data().health_hero != 0) {
       if(doc.data().stamina >= staminaCost) {
-      //regain stamina every turn. Clamp to max and min.
-      let stamina = Number(doc.data().stamina) + (Number(heroData.level) / 2) - staminaCost;
-      if(stamina > heroData.level * 4) stamina = heroData.level * 4;
+      //regain 2 stamina every turn. Clamp to max and min.
+      let stamina = Number(doc.data().stamina) + 1 - staminaCost;
+      if(stamina > 10) stamina = 10;
       if(stamina < 0) stamina = 0;
       //deplete enemy health.
       var newenemyhealth = doc.data().health_enemy - damage;
@@ -696,7 +695,6 @@ function awardLoot(id) {
 
 
   //function setLoadingState: toggle the status of the loading screen.
-  //TODO: add manual time-out
   function toggleLoadingState(status) {
     const loadingScreenTexts = [
       "Convincing the shopkeeper your gold is real...",
@@ -741,11 +739,29 @@ function awardLoot(id) {
       loadingScreen = new bootstrap.Modal(document.getElementById('loading-screen'), {
         keyboard: false, backdrop: "static"
       })
-      
       loadingScreen.show();
     }
-
   }
+
+
+  //Show the level-up screen.
+    //function setLoadingState: toggle the status of the loading screen.
+    function showLevelUpScreen(newLevel) {
+        document.getElementById('level-up-screen-text').innerText = `Congratulations! You are now level ${newLevel}.`
+        let unlockedText = '<ul class="list-group">';
+        db.collection("locations").get().then((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+            if(doc.data().lvl_requirement == newLevel) {
+              unlockedText += ` <li class="list-group-item">Location: ${doc.id}</li>`
+            }
+          });
+          unlockedText += `</ul>`;
+          $('#level-up-screen-unlocked').html(unlockedText);
+          let levelUpScreen = new bootstrap.Modal(document.getElementById('level-up-screen'))
+          levelUpScreen.show();
+      });
+
+    }
 
   //Get a random int in range of 0 to max.
   function getRandomInt(max) {
@@ -764,4 +780,10 @@ function awardLoot(id) {
     if(number >= min && number <= max) return number;
     if(number < min) return min;
     if(number > max) return max;
+  }
+
+  //Get the player's attack.
+  //TODO: add atk buffs here.
+  function getHeroAttack() {
+    return Number(heroData.level);
   }

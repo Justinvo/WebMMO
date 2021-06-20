@@ -127,15 +127,15 @@
           <div id="stamina-hero" class="progress w-75">
           </div>
         </div>
-        <small>Stamina is used to attack and use abilities. You regain a point of stamina for each 2 hero-levels, each turn.</small>
+        <small>Stamina is used to attack and use abilities. You regain 1 point of Stamina, each turn.</small>
       </p>
       <!-- Actions -->
       <p>
       <h5>Actions</h5>
       <div class="d-flex justify-content-center gap-2">
-        <button class="btn btn-primary" type="button" onClick='attackInBattle(heroData.level, heroData.level)'><b><div id="attack-light"></div></b> Light Attack</button>
-        <button class="btn btn-primary" type="button" onClick='attackInBattle(heroData.level*2, heroData.level*2)'><b><div id="attack-heavy"></div></b> Heavy Attack</button>
-        <button class="btn btn-primary" type="button" onClick='attackInBattle(0, heroData.level*-2, "Defend")'><b>0 Stamina</b> Defend (Regain Stamina)</button>
+        <button class="btn btn-primary" type="button" onClick='attackInBattle(getHeroAttack(), 2)'><b>2 Stamina</b> Light Attack</button>
+        <button class="btn btn-primary" type="button" onClick='attackInBattle(getHeroAttack()*2, 4)'><b>4 Stamina</b> Heavy Attack</button>
+        <button class="btn btn-primary" type="button" onClick='attackInBattle(0, -4, "Defend")'><b>0 Stamina</b> Defend (+4 Stamina)</button>
       </div>
       <p></p>
       <h6>Class Actions</h6>
@@ -177,6 +177,29 @@
         </div>
       </div>
     </div>
+    
+        <!-- Level up Modal -->
+        <div class="modal fade" id="level-up-screen" tabindex="-1" aria-labelledby="level-up-screen-label" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="level-up-screen-label">Level-up!</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <h3>Level-up!</h3>
+                <h5><div id="level-up-screen-text"></div></h5>
+                <hr>
+                <h5>Now unlocked: </h5>
+                <h6><div id="level-up-screen-unlocked"></div></h6>
+                <div class="d-flex justify-content-center">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
   </div>
 </body>
 <script src="app.js"></script>

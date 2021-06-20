@@ -6,7 +6,6 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WebMMO</title>
-  <script type="text/javascript" src="https://cdn.applixir.com/applixir.sdk3.0m.js"></script>   
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"
     integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -222,48 +221,7 @@
           <h5> Thanks for playing! </h5>
           <p></p>
           <div class="game-menu-list">
-            <button id="watch-add" onClick="startAd()" class="list-group-item list-group-item-action list-group-item-primary">Watch ad to fully restore health!</button>
             <button id="sign-out" class="list-group-item list-group-item-action list-group-item-warning">Sign-out</button>
-
-            <!-- Applixir Add Script.-->
-            <script>
-              //Start an ad
-              function startAd() {
-                let options = {                                                       
-                  zoneId: 4152,
-                  accountId: 5149,                                                                              
-                  gameId: 6324,
-                  adStatusCb: adStatusCallback,
-                  userId: 1
-              }; 
-                invokeApplixirVideoUnit(options);
-              }
-              //Call back for ad:
-              function adStatusCallback(status) {
-            if(status == ad.watched) {
-              setHeroHealth(getHeatlh().max);
-              // Display a success toast, with a title
-              toastr.options = {
-              "closeButton": true,
-              "debug": false,
-              "newestOnTop": false,
-              "progressBar": false,
-              "positionClass": "toast-bottom-left",
-              "preventDuplicates": false,
-              "onclick": null,
-              "showDuration": "300",
-              "hideDuration": "1000",
-              "timeOut": "5000",
-              "extendedTimeOut": "1000",
-              "showEasing": "swing",
-              "hideEasing": "linear",
-              "showMethod": "fadeIn",
-              "hideMethod": "fadeOut"
-            }
-              toastr.success('Thanks for watching a quick ad! Your support keeps this game running. Your health has been restored fully as a thank you!', 'Watch Ad Reward')
-            }
-        }
-            </script>
           </div>
           <p></p>
           <h5><b>Upcoming Features:</b></h5>
@@ -304,12 +262,29 @@
   </div>
 </div>
 
-
-<!-- Ad Container-->
+  <!-- Level up Modal -->
+  <div class="modal fade" id="level-up-screen" tabindex="-1" aria-labelledby="level-up-screen-label" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="level-up-screen-label">Level-up!</h5>
+          <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <h3>Level-up!</h3>
+          <h5><div id="level-up-screen-text"></div></h5>
+          <hr>
+          <h5>Now unlocked: </h5>
+          <h6><div id="level-up-screen-unlocked"></div></h6>
+          <div class="d-flex justify-content-center">
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-  <div id="applixir_vanishing_div" hidden>
-    <iframe id="applixir_parent" allow="autoplay; fullscreen"></iframe>
-</div>
+
 </body>
 <script src="app.js"></script>
 <script src="game.js"></script>
