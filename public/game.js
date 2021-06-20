@@ -180,6 +180,7 @@
           heroXPText.innerText = `${getXP().current} / ${getXP().next} `
           displayInventory(heroData.inventory);
           initLocations();
+          updateEquippedItems();
           })
         });
         //Load quests, filter and display.
@@ -313,6 +314,7 @@
     // HELPER FUNCTIONS //
     //////////////////////
 
+    //TODO: unfuck this function as it relies on stupid ways to grab items and alter them.
     //Add an item to a inventory, grab data from server. Can be used with negative values to remove items. Will wipe item if final quantity reaches <1
     function addItemToInventory(id, quantity) {
       db.collection("data").doc("items").get()
@@ -323,7 +325,7 @@
           let playerRef = db.collection('users').doc(getUserID())
           playerRef.get().then((doc) => {
             //If we have no inventory, add it.
-            if(doc.data().inventory[0] == null) {
+            if(!doc.data().inventory) {
               let object = {quantity: Number(quantity), id: id, action: item.action, tooltip: item.tooltip, sellable: item.sellable, value: item.value};
               object = prepObject(object);
               let array = [object];
@@ -336,29 +338,43 @@
               let inventory = doc.data().inventory;
               let counter = -1;
               let index = -1;
+              let found = false;
               inventory.forEach((element) => {
                 counter++
                 if(element.id == id) {
                   index = counter;
+                  found = true;
                 }
-              }) 
-              if(quantity+inventory[counter].quantity > 0)
-              {
-                let object = { id: id, quantity: Number(quantity)+Number(inventory[counter].quantity), action: item.action, tooltip: item.tooltip, value: item.value};
-                object = prepObject(object);
-                inventory[counter] = object;
-                return playerRef.update({
-                  inventory: inventory
-                })
-              }
-              //Wipe item if quantity is less than 1.
-              else
+              })
+              if(found) {
+                if(quantity+inventory[index].quantity > 0)
                 {
-                 inventory =  inventory.filter(function(e) { return e.i !== id })
+                  let object = { id: id, quantity: Number(quantity)+Number(inventory[index].quantity), action: item.action, tooltip: item.tooltip, value: item.value};
+                  object = prepObject(object);
+                  inventory[index] = object;
                   return playerRef.update({
                     inventory: inventory
                   })
                 }
+                //Wipe item if quantity is less than 1.
+                else
+                  {
+                   inventory =  inventory.filter(function(e) { return e.i !== id })
+                    return playerRef.update({
+                      inventory: inventory
+                    })
+                  }
+               } 
+               //Add the new object.
+               else {
+                let object = { id: id, quantity: Number(quantity), action: item.action, tooltip: item.tooltip, value: item.value};
+                object = prepObject(object);
+                let position = inventory.length;
+                inventory[position] = object;
+                return playerRef.update({
+                  inventory: inventory
+                })
+               }
               }
           })
             })
@@ -745,7 +761,6 @@ function awardLoot(id) {
 
 
   //Show the level-up screen.
-    //function setLoadingState: toggle the status of the loading screen.
     function showLevelUpScreen(newLevel) {
         document.getElementById('level-up-screen-text').innerText = `Congratulations! You are now level ${newLevel}.`
         let unlockedText = '<ul class="list-group">';
@@ -760,7 +775,76 @@ function awardLoot(id) {
           let levelUpScreen = new bootstrap.Modal(document.getElementById('level-up-screen'))
           levelUpScreen.show();
       });
+    }
 
+    //Show the equipment screen.
+    function showEquipmentScreen() {
+      let equipmentScreen = new bootstrap.Modal(document.getElementById('equipment-screen'))
+      updateEquippedItems();
+      equipmentScreen.show();  
+    }
+
+    //Update the current category.
+    function equipmentScreenUpdateCategory(category) {
+      $('#equipment-screen-items').html('<ul class="list-group">') 
+      //Get the Hero's inventory.
+      let inventory = heroData.inventory;
+      //Grab the item dictionary.
+      db.collection('data').doc('items').get().then((doc) => {
+        let found = false;
+        let items = doc.data();
+        inventory.forEach((element) => {
+          //Check if the users inventory item is in this category or no category was specified (implying we want all items that are either armor or weapons.)
+          if(category && items[element.id].category == category || !category && (items[element.id].category).startsWith('Armor') || !category && (items[element.id].category).startsWith('Weapon')) {
+            //Add a button.
+            $('#equipment-screen-items').append(`<li class="list-group-item"><button type="button" class="btn btn-primary" onClick="equipItem('${element.id}')">Equip: ${element.id} <span class="badge bg-dark">${items[element.id].stat}</span></button></li>`);
+            found = true;
+          } 
+        })
+        //If no items were found, display some feedback instead.
+        if(!found) $('#equipment-screen-items').append(`<li class="list-group-item">No items found in this category.</li>`);
+        $('#equipment-screen-items').append('</ul>')
+      })
+    }
+
+    //Equip an item from the equipment screen.
+    function equipItem(item) {
+      //Grab the item library
+      db.collection('data').doc('items').get().then((doc) => {
+        let items = doc.data();
+        let category = items[item].category;
+        if(category.startsWith('Weapon')) {
+          category = 'Weapon'
+        }
+        //Check if our user has a object equipped in this slot.
+        db.collection('users').doc(getUserID()).get().then((userDoc) => {
+          if(userDoc.data().equipment) {
+            let equipped = userDoc.data().equipment;
+            equipped[category] = item;
+            db.collection('users').doc(getUserID()).set({
+              equipment: equipped
+            }, {merge: true})
+          }
+          else {
+            db.collection('users').doc(getUserID()).set({
+              equipment: {[category]: item}
+            }, {merge: true})
+          }
+        })
+      });
+    }
+
+    //Update currently equipped items
+    function updateEquippedItems() {
+      $('#equipment-screen-equipped').html('<ul class="list-group">')
+      db.collection('data').doc('items').get().then((doc) => {
+        let equipped = heroData.equipment;
+        let keys = Object.keys(equipped)
+        let items = doc.data()
+        keys.forEach((element) => {
+          $('#equipment-screen-equipped').append(`<li class="list-group-item">${equipped[element]}  <span class="badge bg-primary">${items[equipped[element]].stat}</span></li>`)
+        })
+      })
     }
 
   //Get a random int in range of 0 to max.

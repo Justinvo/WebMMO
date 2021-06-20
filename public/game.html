@@ -86,7 +86,7 @@
         <!-- Hero Info-->
         <div class="tab-pane fade show active" id="nav-info-hero" role="tabpanel" aria-labelledby="nav-info-hero-tab">
           <p></p>
-          <h5>Hero Info</h5>
+          <h5>Hero Info:</h5>
           <p></p>
           <li class="list-group-item" data-toggle="tooltip" data-bs-placement="top" title="The name of your hero!">Hero
             Name: <span class="badge bg-primary">
@@ -114,6 +114,8 @@
         <div class="tab-pane fade" id="nav-info-inventory" role="tabpanel" aria-labelledby="nav-info-inventory-tab">
           <p></p>
           <h5>Hero Inventory: </h5>
+          <p></p>
+          <button type="button" onClick="showEquipmentScreen()" class="btn btn-primary">View Equipment</button>
           <p></p>
           <li class="list-group-item"><ul id="hero-inventory-list" class="list-group"></ul></li>
         </div>
@@ -169,6 +171,10 @@
           <!-- Stores -->
           <div class="tab-pane fade" id="nav-menu-game-stores" role="tabpanel" aria-labelledby="nav-menu-game-stores-tab">
             <button class="btn btn-primary" type="button" onClick='addItemToInventory("Gold", 10)'>Add 10 Gold</button>
+            <button class="btn btn-primary" type="button" onClick='addItemToInventory("Rusty Shortsword", 1)'>Add Rusty Shortsword</button>
+            <button class="btn btn-primary" type="button" onClick='addItemToInventory("Rusty Chestpiece", 1)'>Add Rusty Chestpiece</button>
+            <button class="btn btn-primary" type="button" onClick='addItemToInventory("Rusty Helmet", 1)'>Add Rusty Helmet</button>
+            <button class="btn btn-primary" type="button" onClick='addItemToInventory("Boring Shortbow", 1)'>Add Boring Shortbow</button>
             <button class="btn btn-primary" type="button" onClick='restoreHealth(50)'>Restore Health</button>
             <p></p>Obviously this is placeholder until I get stores in :)
           </div>
@@ -284,6 +290,61 @@
       </div>
     </div>
   </div>
+
+    <!-- Equipment Modal -->
+    <div class="modal fade" id="equipment-screen" tabindex="-1" aria-labelledby="equipment-screen-label" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="equipment-screen-label">Equipment Screen</h5>
+            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <small>Equip your armor and weapons here.</small>
+            <hr>
+            Currently equipped:
+            <div id="equipment-screen-equipped"></div>
+            <p></p>
+            <hr>
+            View category:
+            <p></p>
+            <div>
+              <div class="btn-group">
+                <button type="button" class="btn btn-primary" onClick="equipmentScreenUpdateCategory()">
+                  All
+                </button>
+                <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Armor
+                </button>
+                <div class="dropdown-menu">
+                  <a class="dropdown-item" onClick="equipmentScreenUpdateCategory('Armor-Head')">Head</a>
+                  <a class="dropdown-item" onClick="equipmentScreenUpdateCategory('Armor-Shoulders')">Shoulders</a>
+                  <a class="dropdown-item" onClick="equipmentScreenUpdateCategory('Armor-Chest')">Chest</a>
+                  <a class="dropdown-item" onClick="equipmentScreenUpdateCategory('Armor-Hands')">Hands</a>
+                  <a class="dropdown-item" onClick="equipmentScreenUpdateCategory('Armor-Legs')">Legs</a>
+                  <a class="dropdown-item" onClick="equipmentScreenUpdateCategory('Armor-Feet')">Feet</a>
+                </div>
+                <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Weapons
+                </button>
+                <div class="dropdown-menu">
+                  <a class="dropdown-item" onClick="equipmentScreenUpdateCategory('Weapon-One-Handed Sword')">One-Handed Sword</a>
+                  <a class="dropdown-item" onClick="equipmentScreenUpdateCategory('Weapon-Two-Handed Sword')">Two-Handed Sword</a>
+                  <a class="dropdown-item" onClick="equipmentScreenUpdateCategory('Weapon-Dagger')">Dagger</a>
+                  <a class="dropdown-item" onClick="equipmentScreenUpdateCategory('Weapon-Shortbow')">Shortbow</a>
+                  <a class="dropdown-item" onClick="equipmentScreenUpdateCategory('Weapon-Longbow')">Longbow</a>
+                  <a class="dropdown-item" onClick="equipmentScreenUpdateCategory('Weapon-Crossbow')">Crossbow</a>
+                  <a class="dropdown-item" onClick="equipmentScreenUpdateCategory('Weapon-Staff')">Staff</a>
+                </div>
+              </div>
+            </div>
+            <div id="equipment-screen-items"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
 </body>
 <script src="app.js"></script>
