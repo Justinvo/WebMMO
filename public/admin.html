@@ -57,14 +57,14 @@
         <button class="nav-link" id="nav-info-quests-tab" data-bs-toggle="tab" data-bs-target="#nav-info-quests" type="button" role="tab" aria-controls="nav-info-quests" aria-selected="false">Quests</button>
         <button class="nav-link" id="nav-info-items-tab" data-bs-toggle="tab" data-bs-target="#nav-info-items" type="button" role="tab" aria-controls="nav-info-items" aria-selected="false">Items</button>
         <button class="nav-link" id="nav-info-enemies-tab" data-bs-toggle="tab" data-bs-target="#nav-info-enemies" type="button" role="tab" aria-controls="nav-info-enemies" aria-selected="false">Enemies</button>
+        <button class="nav-link" id="nav-info-stores-tab" data-bs-toggle="tab" data-bs-target="#nav-info-stores" type="button" role="tab" aria-controls="nav-info-stores-tab" aria-selected="false">Stores</button>
         <button class="nav-link" id="nav-info-enemy-stats-tab" data-bs-toggle="tab" data-bs-target="#nav-info-enemy-stats" type="button" role="tab" aria-controls="nav-info-enemy-stats-tab" aria-selected="false">Enemy Stats</button>
       </div>
     </nav>
     <div class="tab-content" id="nav-tabContent">
     <!-- Locations -->
     <div class="tab-pane fade show active" id="nav-info-locations" role="tabpanel" aria-labelledby="nav-info-locations-tab">
-        <ul id="location-list" class="list-group"></ul>
-        <hr>
+      <p></p>
         <p>
             <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#newlocwizard" aria-expanded="false" aria-controls="newlocwizard">
               Open New Location Wizard
@@ -85,6 +85,9 @@
                   </select>
                   <label for="loc-wizard-level">Level Requirement</label>
                   <input type="number" class="form-control" id="loc-wizard-level" placeholder="">
+                  <label for="loc-wizard-stores">Stores</label>
+                  <select multiple class="form-control" id="loc-wizard-stores">
+                  </select>
                 </div>
                 <p></p>
                 <button type="button" onClick="submitLocation()" class="btn btn-primary">Submit</button>
@@ -92,13 +95,13 @@
             <div class="card card-body">
           </div>
     </div>
+    <hr>
+    <ul id="location-list" class="list-group"></ul>
     </div>
 
     <!-- Quests -->
     <div class="tab-pane fade" id="nav-info-quests" role="tabpanel" aria-labelledby="nav-info-quests-tab">
       <p></p>
-      <ul id="quest-list" class="list-group"></ul>
-      <hr>
       <p>
           <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#newquestwizard" aria-expanded="false" aria-controls="newquestwizard">
             Open New Quest Wizard
@@ -115,34 +118,35 @@
                 <label for="quest-wizard-description">Description</label>
                 <input type="text" class="form-control" id="quest-wizard-description" placeholder="">
                 <label for="quest-wizard-enemies">Enemies</label>
-                <select multiple class="form-control" id="quest-wizard-enemies">
+                <select multiple class="form-control" id="quest-wizard-enemies" oninput="updateQuestEnemyList()">
                 </select>
-                <label for="quest-wizard-enemies-quantity">Enemies Quantity</label>
-                <input type="number" class="form-control" id="quest-wizard-enemies-quantity" placeholder="2">
+                <p></p>
+                <label>Enemies Quantity</label>
+                <div id="quest-wizard-enemy-quantity-list"></div>
                 <label for="quest-wizard-level">Level Requirement</label>
                 <input type="number" class="form-control" id="quest-wizard-level" placeholder="1">
                 <label for="quest-wizard-questrequirements">Quest Requirements</label>
                 <select multiple class="form-control" id="quest-wizard-questrequirements">
                 </select>
                 <label for="quest-wizard-rewards">Rewards</label>
-                <select multiple class="form-control" id="quest-wizard-rewards">
+                <select multiple class="form-control" id="quest-wizard-rewards" oninput="updateQuestRewardList()">
                 </select>
-                <label for="quest-wizard-rewards-quantity">Reward Quantity</label>
-                <input type="number" class="form-control" id="quest-wizard-rewards-quantity" placeholder="1">
+                <label>Reward Quantity</label>
+                <div id="quest-wizard-rewards-quantity-list"></div>
               </div>
               <p></p>
               <button type="button" onClick="submitQuest()" class="btn btn-primary">Submit</button>
             </form>
           <div class="card card-body">
         </div>
-  </div>    
+  </div> 
+  <hr> 
+  <ul id="quest-list" class="list-group"></ul>
     </div>
 
     <!-- Items -->
     <div class="tab-pane fade" id="nav-info-items" role="tabpanel" aria-labelledby="nav-info-items-tab">
       <p></p>
-      <ul id="items-list" class="list-group"></ul>
-      <hr>
       <p>
           <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#newitemwizard" aria-expanded="false" aria-controls="newitemwizard">
             Open New Item Wizard
@@ -177,21 +181,21 @@
             </form>
           <div class="card card-body">
         </div>
-  </div>       
+  </div>  
+  <hr>  
+  <ul id="items-list" class="list-group"></ul>   
     </div>
 
     <!-- Enemies -->
     <div class="tab-pane fade" id="nav-info-enemies" role="tabpanel" aria-labelledby="nav-info-enemies-tab">
       <p></p>
-      <ul id="enemies-list" class="list-group"></ul>
-      <hr>
       <p>
           <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#newenemywizard" aria-expanded="false" aria-controls="newenemywizard">
             Open New Enemy Wizard
           </button>
         </p>
         <div class="collapse" id="newenemywizard">
-            <h5>Create New Item:</h5>
+            <h5>Create New Enemy:</h5>
           <form>
               <div class="form-group">
                 <label for="enemy-wizard-name">Name</label>
@@ -224,7 +228,56 @@
             </form>
           <div class="card card-body">
         </div>
-  </div>  
+  
+      </div>  
+      <hr>
+      <ul id="enemies-list" class="list-group"></ul>
+    </div>
+
+    <!-- Stores -->
+    <div class="tab-pane fade" id="nav-info-stores" role="tabpanel" aria-labelledby="nav-info-stores-tab">
+      <p></p>
+      <p>
+          <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#newstorewizard" aria-expanded="false" aria-controls="newstorewizard">
+            Open New Store Wizard
+          </button>
+        </p>
+        <div class="collapse" id="newstorewizard">
+            <h5>Create New Store:</h5>
+          <form>
+              <div class="form-group">
+                <label for="store-wizard-name">Name</label>
+                <input type="text" class="form-control" id="store-wizard-name" placeholder="">
+
+                <label for="store-wizard-description">Description</label>
+                <input type="text" class="form-control" id="store-wizard-description" placeholder="">
+
+                <label for="store-wizard-level-requirement">Level Requirement</label>
+                <input type="number" class="form-control" id="store-wizard-level-requirement" placeholder="3">
+
+                <label for="store-wizard-price-multiplier-buying">Price Multiplier Player Buying</label>
+                <input type="number" class="form-control" id="store-wizard-price-multiplier-buying" placeholder="3">
+
+                <label for="store-wizard-price-multiplier-selling">Price Multiplier Player Selling</label>
+                <input type="number" class="form-control" id="store-wizard-price-multiplier-selling" placeholder="1">
+
+                <label for="store-wizard-items">Items for Sale</label>
+                <select multiple class="form-control" id="store-wizard-items" oninput="updateStoreItemList()">
+                </select>
+                <p></p>
+                <label>Items Quantity</label>
+                <div id="store-wizard-items-quantity-list"></div>
+
+              </div>
+              <p></p>
+              <button type="button" onClick="submitStore()" class="btn btn-primary">Submit</button>
+            </form>
+          <div class="card card-body">
+        </div>
+  
+      </div>  
+      <hr>
+      <ul id="stores-list" class="list-group"></ul>
     </div>
 
     <!-- Enemy Difficulty Curve-->
@@ -327,18 +380,22 @@ setupItemsForWizards();
 setupItems();
 setupItemCategoriesForWizards();
 setupEnemies();
-
+setupStores();
+setupStoresForWizards();
 //Functions for admin console.
 function setupLocations() {
         $('#location-list').html('<p></p>');
         const locRefs = db.collection("locations").orderBy("order", "asc");
         locRefs.get().then((query) => {
             query.forEach((doc) => {
+              let stores = doc.data().stores;
+              stores = JSON.stringify(stores);
                 const locationString = ` <ul class='list-group'><b><h5>${doc.id}</h5></b>
                     <li class='list-group-item'><b>Description:</b> ${doc.data().description}</li>
                     <li class='list-group-item'><b>Enemies:</b> ${doc.data().enemies}</li>
                     <li class='list-group-item'><b>Level Requirement:</b> ${doc.data().lvl_requirement}</li>
                     <li class='list-group-item'><b>Draw Order:</b> ${doc.data().order}</li>
+                    <li class='list-group-item'><b>Stores:</b> ${stores}</li>
                     </ul><p></p>`
                 $('#location-list').append(locationString); 
             })
@@ -356,15 +413,18 @@ function setupEnemiesForWizards() {
 function submitLocation() {
     let name = $('#loc-wizard-name').val();
     let description = $('#loc-wizard-description').val();
-    let order = $('#loc-wizard-order').val();
+    let order = Number($('#loc-wizard-order').val());
     let enemies = $('#loc-wizard-enemies').val();
-    let levelreq = $('#loc-wizard-level').val();
+    let levelreq = Number($('#loc-wizard-level').val());
+    let stores = $('#loc-wizard-stores').val();
+    if(!stores) stores = [];
     db.collection('locations').doc(name).set({
         description: description,
         order: order,
         enemies: enemies,
         lvl_requirement: levelreq,
-        players: []
+        players: [],
+        stores: stores
     })
     .then(() => {
         window.location = 'admin.html';
@@ -383,6 +443,10 @@ function setupQuests() {
           let rewards = data[key].rewards;
           rewards = JSON.stringify(rewards);
             $('#quest-list').append(` <ul class='list-group'><b><h5>${key}</h5></b>
+              <li class='list-group-item'>
+              <button class="btn btn-primary" onClick='editQuest("${key}")' type="button">
+              Edit Quest
+              </button></li>
               <li class='list-group-item'><b>Quest Giver:</b> ${data[key].quest_giver}</li>
               <li class='list-group-item'><b>Description:</b> ${data[key].description}</li>
               <li class='list-group-item'><b>Level Requirement:</b> ${data[key].lvl_requirement}</li>
@@ -406,18 +470,18 @@ function submitQuest() {
     let description = $('#quest-wizard-description').val();
     let questgiver = $('#quest-wizard-questgiver').val();
     let enemies = $('#quest-wizard-enemies').val();
-    let enemiesquantity = $('#quest-wizard-enemies-quantity').val();
     let levelreq = $('#quest-wizard-level').val();
     let questreq = $('#quest-wizard-questrequirements').val();
     let rewards = $('#quest-wizard-rewards').val();
-    let rewardQuantity = $('#quest-wizard-rewards-quantity').val();
     let enemyObject = [];
-    enemies.forEach((element) => {
-      enemyObject.push({name: element, quantity: enemiesquantity});
+    enemies.forEach((element, index) => {
+      let quantity = $(`#quest-wizard-enemy-quantity-enemy${index}`).val()
+      enemyObject.push({name: element, quantity: quantity});
     })
     let rewardObject = [];
-    rewards.forEach((element) => {
-      rewardObject.push({id: element, quantity: rewardQuantity})
+    rewards.forEach((element, index) => {
+      let quantity = $(`#quest-wizard-rewards-quantity-reward${index}`).val()
+      rewardObject.push({id: element, quantity: quantity})
     })
     let object = {
       description: description,
@@ -427,6 +491,7 @@ function submitQuest() {
       killtargets: enemyObject,
       rewards: rewardObject
     }
+    object = prepObject(object);
     db.collection('data').doc('quests').set({
         [name]: object
     },{ merge: true })
@@ -439,8 +504,10 @@ function submitQuest() {
 }
 function setupItemsForWizards() {
   db.collection('data').doc('items').get().then((doc) => {
+    $('#quest-wizard-rewards').append(`<option>XP</option>`);
         let keys = Object.keys(doc.data())
         keys.forEach((key) => {
+            $('#store-wizard-items').append(`<option>${key}</option>`);
             $('#quest-wizard-rewards').append(`<option>${key}</option>`);
         })
     }) 
@@ -451,7 +518,9 @@ function setupItems() {
         let keys = Object.keys(doc.data())
         keys.forEach((key) => {
             $('#items-list').append(` <ul class='list-group'><b><h5>${key}</h5></b>
+              <li class='list-group-item'><b>Category:</b> ${data[key].category}</li>
               <li class='list-group-item'><b>Tooltip:</b> ${data[key].tooltip}</li>
+              <li class='list-group-item'><b>Stat:</b> ${data[key].stat}</li>
               <li class='list-group-item'><b>Action:</b> ${data[key].action}</li>
               <li class='list-group-item'><b>Value:</b> ${data[key].value}</li>
               <li class='list-group-item'><b>Sellable:</b> ${data[key].sellable}</li>
@@ -570,6 +639,121 @@ function calculateEnemyDifficulty() {
   $('#enemy-wizard-difficulty').val(difficulty);
   $('#enemy-wizard-xp').val(difficulty/5);
 }
+function editQuest(questName) {
+  //Set values:
+  db.collection('data').doc('quests').get().then((doc) => {
+    quest = doc.data()[questName];
+    questEnemies = [];
+    (Object.keys(quest.killtargets)).forEach((target) => {
+      questEnemies.push(quest.killtargets[target].name)
+    })
+    questRewards = [];
+    (Object.keys(quest.rewards)).forEach((target) => {
+      questRewards.push(quest.rewards[target].id)
+      $('#quest-wizard-rewards-quantity').val(quest.rewards[target].quantity);
+    })
+    $('#quest-wizard-name').val(questName);
+    $('#quest-wizard-description').val(quest.description);
+    $('#quest-wizard-questgiver').val(quest.quest_giver);
+    $('#quest-wizard-enemies').val(questEnemies);
+    $('#quest-wizard-level').val(quest.lvl_requirement);
+    $('#quest-wizard-questrequirements').val(quest.quest_requirements);
+    $('#quest-wizard-rewards').val(questRewards);
+    $('#newquestwizard').show();
+    updateQuestEnemyList();
+    updateQuestRewardList();
+  })
+    
+}
+function updateQuestEnemyList() {
+  let enemies = $('#quest-wizard-enemies').val();
+  $('#quest-wizard-enemy-quantity-list').html(`<ul class="list-group">`);
+  enemies.forEach((enemy, index) => {
+    $('#quest-wizard-enemy-quantity-list').append(`
+    <li class="list-group-item">
+    <label for="quest-wizard-enemy-quantity-enemy${index}">${enemy} quantity:</label>
+    <input type="number" class="form-control" id="quest-wizard-enemy-quantity-enemy${index}" placeholder="1">
+    `);
+  })
+}
+function updateQuestRewardList() {
+  let rewards = $('#quest-wizard-rewards').val();
+  $('#quest-wizard-rewards-quantity-list').html(`<ul class="list-group">`);
+  rewards.forEach((enemy, index) => {
+    $('#quest-wizard-rewards-quantity-list').append(`
+    <li class="list-group-item">
+    <label for="quest-wizard-rewards-quantity-reward${index}">${enemy} quantity:</label>
+    <input type="number" class="form-control" id="quest-wizard-rewards-quantity-reward${index}" placeholder="1">
+    `);
+  })
+}
+function submitStore() {
+  let name = $('#store-wizard-name').val();
+  let description = $('#store-wizard-description').val();
+  let levelreq = $('#store-wizard-level-requirement').val();
+  let items = $('#store-wizard-items').val();
+  let pricebuying = $('#store-wizard-price-multiplier-buying').val();
+  let priceselling = $('#store-wizard-price-multiplier-selling').val();
+    let itemsObject = [];
+    items.forEach((element, index) => {
+      let quantity = $(`#store-wizard-items-quantity-reward${index}`).val()
+      itemsObject.push({id: element, multiplier: quantity})
+    })
+    let object = {
+      description: description,
+      lvl_requirement: levelreq,
+      items: itemsObject,
+      pricebuying: pricebuying,
+      priceselling: priceselling
 
+    }
+    object = prepObject(object);
+    db.collection('data').doc('stores').set({
+        [name]: object
+    },{ merge: true })
+    .then(() => {
+        window.location = 'admin.html';
+    })
+    .catch((err) => {
+        console.log(err);
+    })
+}
+function updateStoreItemList() {
+  let items = $('#store-wizard-items').val();
+  $('#store-wizard-items-quantity-list').html(`<ul class="list-group">`);
+  items.forEach((enemy, index) => {
+    $('#store-wizard-items-quantity-list').append(`
+    <li class="list-group-item">
+    <label for="store-wizard-items-quantity-reward${index}">${enemy} Price Multiplier:</label>
+    <input type="number" class="form-control" id="store-wizard-items-quantity-reward${index}" placeholder="1">
+    `);
+  })
+}
+function setupStores() {
+  db.collection('data').doc('stores').get().then((doc) => {
+        let data = doc.data();
+        let keys = Object.keys(doc.data())
+        keys.forEach((key) => {
+          let items = data[key].items;
+          items = JSON.stringify(items);
+            $('#stores-list').append(` <ul class='list-group'><b><h5>${key}</h5></b>
+              <li class='list-group-item'><b>Description:</b> ${data[key].description}</li>
+              <li class='list-group-item'><b>Level Requirement:</b> ${data[key].lvl_requirement}</li>
+              <li class='list-group-item'><b>Items:</b>${items}</li>
+              <li class='list-group-item'><b>Price Multiplier Buying:</b>${data[key].pricebuying}</li>
+              <li class='list-group-item'><b>Price Multiplier Selling:</b>${data[key].priceselling}</li>
+
+                    </ul><p></p>`);
+        })
+    })
+}
+function setupStoresForWizards() {
+db.collection('data').doc('stores').get().then((doc) => {
+      let keys = Object.keys(doc.data());
+      keys.forEach((key) => {
+          $('#loc-wizard-stores').append(`<option>${key}</option>`);      
+      })
+  }) 
+}
 </script>
 </html>

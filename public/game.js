@@ -112,8 +112,47 @@
         players: firebase.firestore.FieldValue.arrayUnion(getUserID())
       });
       //Add the description of this location.
-      db.collection('locations').doc(currentLocation).get().then((locDesc) => {
-        (document.getElementById('current-location-description')).innerText = locDesc.data().description;
+      db.collection('locations').doc(currentLocation).get().then((doc) => {
+        (document.getElementById('current-location-description')).innerText = doc.data().description;
+        //Update the stores in this location.
+        $('#current-location-stores-list').html('');
+        let stores = doc.data().stores;
+        if(stores) {
+          db.collection('data').doc('stores').get().then((storedoc) => {
+            db.collection('data').doc('items').get().then((itemdoc) => {
+              const storesobject = storedoc.data();
+              const itemsobject = itemdoc.data();
+              stores.forEach((element, index) => {
+                //Add items to store.
+                var items = "";
+                (storesobject[element].items).forEach((item) => {
+                  const itemcost = Number(itemsobject[item.id].value) * Number(storesobject[element].pricebuying);
+                  stattext = "";
+                  if(itemsobject[item.id].stat) stattext = `<span class="badge bg-primary">${itemsobject[item.id].stat}</span>`
+                  items = items + `<li class="list-group-item d-flex align-items-center justify-content-between"><div>${item.id} <span class="badge bg-primary">${itemsobject[item.id].category}</span> ${stattext}</div><div><small>${itemsobject[item.id].tooltip}</small></div><button type="button" onClick="buyItem('${item.id}', ${itemcost})" class="btn btn-primary">Buy (${itemcost} Gold)</button></li>`
+                })
+                //Add store.
+                $('#current-location-stores-list').append(`
+                <div class="accordion">
+                  <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading${index}">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#accordion${index}" aria-expanded="true" aria-controls="accordion${index}">
+                    ${element}
+                    </button>
+                    </h2>
+                    <div id="accordion${index}" class="accordion-collapse collapse show" aria-labelledby="heading${index}" data-bs-parent="#accordion${index}">
+                    <div class="accordion-body">
+                    <strong>${storesobject[element].description}</strong>
+                    <hr>
+                    <ul class="list-group">${items}</ul>
+                    </div>
+                  </div>
+                </div>
+                `); 
+              })
+            })
+          })
+        }
       })
       //Keep track of how many players are here. Auto updates if this changes.
       let locAmountText = document.getElementById("current-location-players-amount-text");
@@ -259,29 +298,48 @@
       }
 
     function completeQuest(quest) {
-      db.collection('users').doc(getUserID()).update({
-        quests_completed: firebase.firestore.FieldValue.arrayUnion(quest)
+      db.collection('data').doc('quests').get().then((doc) => {
+        quests = doc.data();
+        db.collection('users').doc(getUserID()).update({
+          quests_completed: firebase.firestore.FieldValue.arrayUnion(quest)
+        })
+        //Actually award the items for this quest.
+        rewards = Object.keys(quests[quest].rewards);
+        rewards.forEach((reward) => {
+        let item = quests[quest].rewards[reward];
+        console.log(item);
+        if(!item.id == 'XP') {
+          addItemToInventory(item.id, Number(item.quantity));
+        }
+        else {
+          addXP(Number(item.quantity));
+        }
+        })
+        toastr.success(`Congratulations! You have completed the quest ${quest}! Onto the next one!`, 'Quest Completed!');
+        //Update quest info the cheap way.
+        pullCharacterInfo();
       })
-      toastr.success(`Congratulations! You have completed the quest ${quest}! Onto the next one!`, 'Quest Completed!');
-      //Update quest info the cheap way.
-      pullCharacterInfo();
-    }
+      }
+
 
     //Display the character's inventory.
     function displayInventory(inventory) {
-      //Clear the inventory list first
-      $('#hero-inventory-list').html('<p></p>');
-      inventory.forEach( element => {
-        let n = element.id;
-        let q = element.quantity;
-        let t = element.tooltip;
-        let a = element.action;
-        if(t == null || t == undefined) t = "";
-        if(a == null || a == undefined) t = "";
-        $('#hero-inventory-list').append(`<li class="list-group-item" data-toggle="tooltip" data-bs-placement="top" onClick='addItemToInventory(${element.i}, -1); onClick=${a};'
-        title="${t}">${n} <span class="badge bg-info">x${q}
-      </span></li>`);  
-      })
+      if(inventory) {
+        let keys = Object.keys(inventory);
+        //Clear the inventory list first
+        $('#hero-inventory-list').html('<p></p>');
+        keys.forEach( element => {
+          let n = element
+          let q = inventory[element].quantity;
+          let t = inventory[element].tooltip;
+          let a = inventory[element].action;
+          if(t == null || t == undefined) t = "";
+          if(a == null || a == undefined) t = "";
+          $('#hero-inventory-list').append(`<li class="list-group-item" data-toggle="tooltip" data-bs-placement="top" onClick='addItemToInventory(${element}, -1); onClick=${a};'
+          title="${t}">${n} <span class="badge bg-info">x${q}
+        </span></li>`);  
+        })
+      }
     }
 
     //Draw the chat and keep it up to date.
@@ -316,69 +374,56 @@
 
     //TODO: unfuck this function as it relies on stupid ways to grab items and alter them.
     //Add an item to a inventory, grab data from server. Can be used with negative values to remove items. Will wipe item if final quantity reaches <1
-    function addItemToInventory(id, quantity) {
-      db.collection("data").doc("items").get()
-        .then((doc) => {
-          let item = doc.data()[id];
-          if(quantity > 0) toastr.success(`You received: ${quantity}x ${id}`, 'Item Gained!');
-          //Now that we have our item data from the server, let's add it to our inventory.
-          let playerRef = db.collection('users').doc(getUserID())
-          playerRef.get().then((doc) => {
-            //If we have no inventory, add it.
-            if(!doc.data().inventory) {
-              let object = {quantity: Number(quantity), id: id, action: item.action, tooltip: item.tooltip, sellable: item.sellable, value: item.value};
-              object = prepObject(object);
-              let array = [object];
-                return playerRef.update({
-                  inventory: array
-                });
+function addItemToInventory(id, quantity) {
+  db.collection("data").doc("items").get()
+    .then((doc) => {
+      let item = doc.data()[id];
+      if (quantity > 0) toastr.success(`You received: ${quantity}x ${id}`, 'Item Gained!');
+      //Now that we have our item data from the server, let's add it to our inventory.
+      let playerRef = db.collection('users').doc(getUserID())
+      playerRef.get().then((doc) => {
+        //If we have no inventory, add it.
+        if (!doc.data().inventory) {
+          let object = { quantity: Number(quantity), action: item.action, tooltip: item.tooltip, sellable: item.sellable, value: item.value, stat: item.stat };
+          object = prepObject(object);
+          let map = { [id]: object };
+          return playerRef.update({
+            inventory: map
+          });
+        }
+        //If we have an inventory, first check if we already have this item.
+        else {
+          //If we have the item already:
+          if(doc.data().inventory[id]) {
+            //Check if the item's new quantity is less than 1.
+            if(Number((doc.data().inventory[id].quantity) + Number(quantity)) < 1) {
+              let map = doc.data().inventory;
+              delete map.id;
+              return playerRef.update({
+                inventory: map
+              });
             }
-            else{
-              //If this item was already in our inventory, change the quantity.
-              let inventory = doc.data().inventory;
-              let counter = -1;
-              let index = -1;
-              let found = false;
-              inventory.forEach((element) => {
-                counter++
-                if(element.id == id) {
-                  index = counter;
-                  found = true;
-                }
-              })
-              if(found) {
-                if(quantity+inventory[index].quantity > 0)
-                {
-                  let object = { id: id, quantity: Number(quantity)+Number(inventory[index].quantity), action: item.action, tooltip: item.tooltip, value: item.value};
-                  object = prepObject(object);
-                  inventory[index] = object;
-                  return playerRef.update({
-                    inventory: inventory
-                  })
-                }
-                //Wipe item if quantity is less than 1.
-                else
-                  {
-                   inventory =  inventory.filter(function(e) { return e.i !== id })
-                    return playerRef.update({
-                      inventory: inventory
-                    })
-                  }
-               } 
-               //Add the new object.
-               else {
-                let object = { id: id, quantity: Number(quantity), action: item.action, tooltip: item.tooltip, value: item.value};
-                object = prepObject(object);
-                let position = inventory.length;
-                inventory[position] = object;
-                return playerRef.update({
-                  inventory: inventory
-                })
-               }
-              }
-          })
-            })
+            //If we have more than 1 after the operation, add the new object back in.
+            else {
+              let map = doc.data().inventory;
+              map[id].quantity = Number(doc.data().inventory[id].quantity) + Number(quantity);
+              return playerRef.update({
+                inventory: map
+              });
+            }
           }
+          //If we dont have the item yet:
+          else {
+            let map = doc.data().inventory;
+            map[id] = { quantity: Number(quantity), action: item.action, tooltip: item.tooltip, sellable: item.sellable, value: item.value, stat: item.stat };
+            return playerRef.update({
+              inventory: map
+            });
+          }
+        }
+      })
+    })
+}
 
     //Get the current userID, that is returned from firestore auth. Only available after initGame()
     function getUserID() {
@@ -449,7 +494,7 @@
   //Start a battle
   function startBattle(enemy) {
     toggleLoadingState(true);
-    if(getHealth().current <= 0) toastr.warning("You can't start a battle while being unconscious. Regain health by paying a priest or by watching an ad in the game options.", "Hold up there...")
+    if(getHealth().current <= 0) toastr.warning("You can't start a battle while being unconscious. Regain health by paying a cleric.", "Hold up there...")
       //Check that our player is not currently in a fight.
   db.collection('fights').doc(getUserID()).get().then((doc) => {
     if(doc.exists || getHealth().current <= 0) { 
@@ -511,7 +556,10 @@ function attackInBattle(damage, staminaCost, attackDescription) {
       var newenemyhealth = doc.data().health_enemy - damage;
       if(newenemyhealth < 0) newenemyhealth = 0;
       //Calculate enemy damage.
-      const enemyDamage = doc.data().base_attack + (getRandomInt(doc.data().base_attack_max - doc.data().base_attack_min)+doc.data().base_attack_min)
+      const heroDefense = getHeroDefense();
+      const originalDamage = doc.data().base_attack + (getRandomInt(doc.data().base_attack_max - doc.data().base_attack_min)+doc.data().base_attack_min)
+      let enemyDamage = originalDamage - heroDefense;
+      if(enemyDamage < 0) enemyDamage = 0;
       var newherohealth = doc.data().health_hero - enemyDamage;
       if(newherohealth < 0) newherohealth = 0;
       //Create new log message.
@@ -526,7 +574,7 @@ function attackInBattle(damage, staminaCost, attackDescription) {
         //Add the damage to the player and add a log.
         db.collection('fights').doc(uid).update({
           health_hero: newherohealth,
-          log: firebase.firestore.FieldValue.arrayUnion(`<b>${doc.data().log.length + 1}: ${doc.data().enemy}</b> attacks Hero for ${enemyDamage} damage!`)
+          log: firebase.firestore.FieldValue.arrayUnion(`<b>${doc.data().log.length + 1}: ${doc.data().enemy}</b> attacks Hero for ${enemyDamage} damage! <i>(${originalDamage} damage - ${heroDefense} hero's defense)</i>`)
         }).then(() => {
           setHeroHealth(newherohealth);
           checkBattleProgress();
@@ -620,6 +668,8 @@ function checkQuestProgress(enemy) {
         quest.quest_requirements.forEach((element) => {
           if(!heroData.quests_completed.includes(element)) hasRequirements = false;
         })
+        //Don't count towards quests that we have already completed.
+        if(heroData.quests_completed.includes(key)) hasRequirements = false;
         if(hasRequirements)
         {
           //See if we killed any of the targets in the killtargets.
@@ -700,11 +750,8 @@ function awardLoot(id) {
   db.collection("data").doc('enemies').get().then((doc) => {
     const data = doc.get(id).rewards;
     addItemToInventory(data.i, data.q);
-    db.collection('data').doc('items').get().then((items) => {
-      const item = items.data()[data.i]
       db.collection('fights').doc(getUserID()).update({
-        log: firebase.firestore.FieldValue.arrayUnion(`<b>Result: </b>The Hero gained ${data.q}x ${item.name}!`)
-      })
+        log: firebase.firestore.FieldValue.arrayUnion(`<b>Result: </b>The Hero gained ${data.q}x ${data.i}!`)
     })
   })
 }
@@ -789,15 +836,16 @@ function awardLoot(id) {
       $('#equipment-screen-items').html('<ul class="list-group">') 
       //Get the Hero's inventory.
       let inventory = heroData.inventory;
+      let keys = Object.keys(inventory)
       //Grab the item dictionary.
       db.collection('data').doc('items').get().then((doc) => {
         let found = false;
         let items = doc.data();
-        inventory.forEach((element) => {
+        keys.forEach((element) => {
           //Check if the users inventory item is in this category or no category was specified (implying we want all items that are either armor or weapons.)
-          if(category && items[element.id].category == category || !category && (items[element.id].category).startsWith('Armor') || !category && (items[element.id].category).startsWith('Weapon')) {
+          if(category && items[element].category == category || !category && (items[element].category).startsWith('Armor') || !category && (items[element].category).startsWith('Weapon')) {
             //Add a button.
-            $('#equipment-screen-items').append(`<li class="list-group-item"><button type="button" class="btn btn-primary" onClick="equipItem('${element.id}')">Equip: ${element.id} <span class="badge bg-dark">${items[element.id].stat}</span></button></li>`);
+            $('#equipment-screen-items').append(`<li class="list-group-item"><button type="button" class="btn btn-primary" onClick="equipItem('${element}')">Equip: ${element} <span class="badge bg-dark">${items[element].stat}</span></button></li>`);
             found = true;
           } 
         })
@@ -842,7 +890,7 @@ function awardLoot(id) {
         let keys = Object.keys(equipped)
         let items = doc.data()
         keys.forEach((element) => {
-          $('#equipment-screen-equipped').append(`<li class="list-group-item">${equipped[element]}  <span class="badge bg-primary">${items[equipped[element]].stat}</span></li>`)
+          $('#equipment-screen-equipped').append(`<li class="list-group-item"><span class="badge bg-primary">${items[equipped[element]].category}</span> ${equipped[element]}  <span class="badge bg-primary">${items[equipped[element]].stat}</span></li>`)
         })
       })
     }
@@ -867,7 +915,40 @@ function awardLoot(id) {
   }
 
   //Get the player's attack.
-  //TODO: add atk buffs here.
   function getHeroAttack() {
-    return Number(heroData.level);
+      let stats = heroData.equipment;
+      let attackbuff = 0;
+      let keys = Object.keys(stats)
+      keys.forEach((element) => {
+        let object = stats[element]
+        let stat = heroData.inventory[object].stat
+        if(stat.startsWith("atk")) attackbuff += Number(stat.split('atk+')[1]);
+      })
+      return Number(heroData.level) + Number(attackbuff);
+  }
+
+    //Get the player's defense
+    function getHeroDefense() {
+      let stats = heroData.equipment;
+      let defensebuff = 0;
+      let keys = Object.keys(stats)
+      keys.forEach((element) => {
+        let object = stats[element]
+        let stat = heroData.inventory[object].stat
+        if(stat.startsWith("def")) defensebuff += Number(stat.split('def+')[1]);
+      })
+      return Number(defensebuff);
+  }
+
+  function buyItem(item, cost) {
+    if(heroData.inventory["Gold"] && heroData.inventory["Gold"].quantity >= cost) {
+      addItemToInventory(item, 1);
+      setTimeout(function() {
+        addItemToInventory("Gold", cost*-1);
+      }, 1000)
+      
+    }
+    else {
+      toastr.error(`You do not have enough Gold to purchase that item. You have ${heroData.inventory["Gold"].quantity} Gold but need ${cost} Gold.`, "Can't buy that!")
+    }
   }
