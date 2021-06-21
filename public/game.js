@@ -123,32 +123,56 @@
               const storesobject = storedoc.data();
               const itemsobject = itemdoc.data();
               stores.forEach((element, index) => {
-                //Add items to store.
-                var items = "";
-                (storesobject[element].items).forEach((item) => {
-                  const itemcost = Number(itemsobject[item.id].value) * Number(storesobject[element].pricebuying);
-                  stattext = "";
-                  if(itemsobject[item.id].stat) stattext = `<span class="badge bg-primary">${itemsobject[item.id].stat}</span>`
-                  items = items + `<li class="list-group-item d-flex align-items-center justify-content-between"><div>${item.id} <span class="badge bg-primary">${itemsobject[item.id].category}</span> ${stattext}</div><div><small>${itemsobject[item.id].tooltip}</small></div><button type="button" onClick="buyItem('${item.id}', ${itemcost})" class="btn btn-primary">Buy (${itemcost} Gold)</button></li>`
-                })
-                //Add store.
-                $('#current-location-stores-list').append(`
-                <div class="accordion">
-                  <div class="accordion-item">
-                    <h2 class="accordion-header" id="heading${index}">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#accordion${index}" aria-expanded="true" aria-controls="accordion${index}">
-                    ${element}
-                    </button>
-                    </h2>
-                    <div id="accordion${index}" class="accordion-collapse collapse show" aria-labelledby="heading${index}" data-bs-parent="#accordion${index}">
-                    <div class="accordion-body">
-                    <strong>${storesobject[element].description}</strong>
-                    <hr>
-                    <ul class="list-group">${items}</ul>
+                //If this is a healer, add that.
+                if(storesobject[element].healer) {
+                  $('#current-location-stores-list').append(`
+                  <div class="accordion">
+                    <div class="accordion-item">
+                      <h2 class="accordion-header" id="heading${index}">
+                      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#accordion${index}" aria-expanded="true" aria-controls="accordion${index}">
+                      ${element}
+                      </button>
+                      </h2>
+                      <div id="accordion${index}" class="accordion-collapse collapse show" aria-labelledby="heading${index}" data-bs-parent="#accordion${index}">
+                      <div class="accordion-body">
+                      <strong>${storesobject[element].description}</strong>
+                      <hr>
+                      <ul class="list-group">
+                      <li class="list-group-item d-flex align-items-center justify-content-between"><div>Restore Health</div><button type="button" onClick="restoreHealth(50)" class="btn btn-primary">Heal (0 Gold)</button></li>
+                      </ul>
+                      </div>
                     </div>
                   </div>
-                </div>
-                `); 
+                  `);
+                }
+                //Add items to store.
+                else {
+                  var items = "";
+                  (storesobject[element].items).forEach((item) => {
+                    const itemcost = Number(itemsobject[item.id].value) * Number(storesobject[element].pricebuying);
+                    stattext = "";
+                    if(itemsobject[item.id].stat) stattext = `<span class="badge bg-primary">${itemsobject[item.id].stat}</span>`
+                    items = items + `<li class="list-group-item d-flex align-items-center justify-content-between"><div>${item.id} <span class="badge bg-primary">${itemsobject[item.id].category}</span> ${stattext}</div><div><small>${itemsobject[item.id].tooltip}</small></div><button type="button" onClick="buyItem('${item.id}', ${itemcost})" class="btn btn-primary">Buy (${itemcost} Gold)</button></li>`
+                  })
+                  //Add store.
+                  $('#current-location-stores-list').append(`
+                  <div class="accordion">
+                    <div class="accordion-item">
+                      <h2 class="accordion-header" id="heading${index}">
+                      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#accordion${index}" aria-expanded="true" aria-controls="accordion${index}">
+                      ${element}
+                      </button>
+                      </h2>
+                      <div id="accordion${index}" class="accordion-collapse collapse show" aria-labelledby="heading${index}" data-bs-parent="#accordion${index}">
+                      <div class="accordion-body">
+                      <strong>${storesobject[element].description}</strong>
+                      <hr>
+                      <ul class="list-group">${items}</ul>
+                      </div>
+                    </div>
+                  </div>
+                  `); 
+                }
               })
             })
           })
