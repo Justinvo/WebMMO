@@ -163,6 +163,13 @@
                 <label for="item-wizard-category">Category</label>
                 <select id="item-wizard-category" class="form-select" aria-label="Category">
                 </select>
+                <label for="item-wizard-class">Usable By (No Selection means it's usable by everyone.)</label>
+                <select id="item-wizard-class" class="form-select" aria-label="Category">
+                  <option></option>
+                  <option>Warrior</option>
+                  <option>Ranger</option>
+                  <option>Priest</option>
+                </select>
                 <label for="item-wizard-action">Action</label>
                 <input type="text" class="form-control" id="item-wizard-action" aria-describedby="item-wizard-action-help" placeholder="">
                 <div id="item-wizard-action-help" class="form-text">Actions can execute functions within game.js when the player consumes this item.</div>
@@ -524,6 +531,7 @@ function setupItems() {
               <li class='list-group-item'><b>Action:</b> ${data[key].action}</li>
               <li class='list-group-item'><b>Value:</b> ${data[key].value}</li>
               <li class='list-group-item'><b>Sellable:</b> ${data[key].sellable}</li>
+              <li class='list-group-item'><b>Class:</b> ${data[key].itemClass}</li>
                     </ul><p></p>`);
         })
     })  
@@ -536,13 +544,15 @@ function submitItem() {
   let value = $('#item-wizard-value').val();
   let sellable = $('#item-wizard-sellable').prop('checked');
   let stat = $('#item-wizard-stat').val();
+  let itemClass = $('#item-wizard-class').val();
   let object = {
       tooltip: tooltip,
       category: category,
       action: action,
       value: value,
       sellable, sellable,
-      stat: stat
+      stat: stat,
+      itemClass: itemClass
     }
     object = prepObject(object)
 

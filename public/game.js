@@ -890,6 +890,12 @@ function awardLoot(id) {
         if(category.startsWith('Weapon')) {
           category = 'Weapon'
         }
+        //If this item is only usable by a certain class, check if we are in that class.
+        if(items[item].itemClass) {
+          if(items[item].itemClass != heroData.class) {
+            return toastr.error(`You can't equip that item. It's meant for a ${items[item].itemClass}.`, "Can't equip.")
+          }
+        }
         //Check if our user has a object equipped in this slot.
         db.collection('users').doc(getUserID()).get().then((userDoc) => {
           if(userDoc.data().equipment) {
