@@ -942,13 +942,16 @@ function awardLoot(id) {
   function getHeroAttack() {
       let stats = heroData.equipment;
       let attackbuff = 0;
-      let keys = Object.keys(stats)
-      keys.forEach((element) => {
-        let object = stats[element]
-        let stat = heroData.inventory[object].stat
-        if(stat.startsWith("atk")) attackbuff += Number(stat.split('atk+')[1]);
-      })
-      return Number(heroData.level) + Number(attackbuff);
+      if(stats) {
+        let keys = Object.keys(stats)
+        keys.forEach((element) => {
+          let object = stats[element]
+          let stat = heroData.inventory[object].stat
+          if(stat.startsWith("atk")) attackbuff += Number(stat.split('atk+')[1]);
+        })
+        return Number(heroData.level) + Number(attackbuff);
+      }
+      return Number(heroData.level)
   }
 
     //Get the player's defense
