@@ -7,7 +7,7 @@
   <title>WebMMO by JustinVanOort</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"
     integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
@@ -89,10 +89,25 @@
     integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
     crossorigin="anonymous"></script>
   <script>
+    //Add playersonline texts.
+    db.collection('users').get().then((doc) => {
+      let players = doc.docs.length;
+      $('#playersonline').append(`
+      <div class="btn btn-primary">Hero's who have already embarked: ${players} </div>
+      `);
+    })
+    //Add playersfighting texts.
+    db.collection('fights').get().then((doc) => {
+      let fights = doc.docs.length;
+      $('#playersfighting').append(`
+      <div class="btn btn-primary">Hero's currently in a battle: ${fights} </div>
+      `);
+    })
+
     //Handle Account Status
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
-        window.location = 'game.html'; //After successful login, user will be redirected.
+        //window.location = 'game.html'; //After successful login, user will be redirected.
       }
     });
   </script>
@@ -100,44 +115,126 @@
 
 
 <body>
+
+  <div class="container">
+    <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+      <a href="/index.html" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
+        <span class="fs-4">WebMMO</span>
+      </a>
+      <div class="col-md-3 text-end" id="playersonline"></div>
+      <div class="col-md-3 text-end" id="playersfighting"></div>
+      <div class="col-md-3 text-end">
+        <button class="btn btn-outline-primary me-2" type="button" data-bs-toggle="collapse"
+          data-bs-target=".multi-collapse" aria-expanded="false" aria-controls="collapsePlay collapseAbout">Play</button>
+      </div>
+    </header>
+  </div>
+
+  <!-- Play Collapse -->
   <div class="d-flex justify-content-center">
-    <div class="jumbotron">
-  <h1 class="display-4">WebMMO</h1>
-  <p class="lead">WebMMO is a browser-based MMORPG with no graphics, everything is conveyed through text. </p>
-  <hr class="my-4">
-  <p>Players create hero's and level those up through quests and battling. Crafting, Trading and more to be added!</p>
-  <p class="lead">
-      <div id="message">
-    <div id="loading">Loading...</div>
-    <div id="loaded" class="hidden">
-      <div id="main">
-        <div id="user-signed-in" class="hidden">
-          <div id="user-info">
-            You are already signed in as:
-            <div id="name"></div>
-            <form action="game.html">
-              <input type="submit" value="Go to Game" />
-            </form>
-            <p>
-              Not you?
-              <button id="sign-out">Sign out</button>
-            </p>
-            <div class="clearfix"></div>
-          </div>
-        </div>
-        <div id="user-signed-out" class="hidden">
-          <h1>Sign-up or Log-in:</h1>
-          <div id="firebaseui-spa">
-            <div id="firebaseui-container"></div>
+    <div class="collapse multi-collapse" id="collapsePlay">
+      <div class="container">
+        <div>
+          <div id="loaded" class="hidden">
+            <div id="main">
+              <div id="user-signed-in" class="hidden">
+                <div id="user-info">
+                  You are already signed in as:
+                  <div id="name"></div>
+                  <form action="game.html">
+                    <input type="submit" value="Go to Game" />
+                  </form>
+                  <p>
+                    Not you?
+                    <button id="sign-out">Sign out</button>
+                  </p>
+                  <div class="clearfix"></div>
+                </div>
+              </div>
+              <div id="user-signed-out" class="hidden">
+                <div id="firebaseui-spa">
+                  <div id="firebaseui-container"></div>
+                  <small>Please note that Google is only used to sign-up and log-in. None of your data is stored on our servers except for an anonymous ID linked to your google account.</small>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </p>
-</div>
   </div>
-  
+  <p></p>
 
+  <div class="collapse show multi-collapse" id="collapseAbout">
+    <div class="container marketing">
+    <!-- Three columns of text below the carousel -->
+    <div class="row">
+      <div class="col-lg-4">
+        <img class="rounded-circle" src="img/assets/overlord-helm.svg" alt="Icon #1" width="140" height="140">
+        
+        <h2>Hero</h2>
+        <p>Create and customise your own Hero. Choose from a selection of (evergrowing) classes. Purchase and equip armor, weapons and more. Level up and unlock new abilities.</p>
+      </div><!-- /.col-lg-4 -->
+      <div class="col-lg-4">
+        <img class="rounded-circle" src="img/assets/swords-emblem.svg" alt="Icon #2" width="140" height="140">
+        <h2>Battle</h2>
+        <p>Gain XP and loot by winning battles. Fight against monsters found in the wild or other players in PvP combat (coming soon <i>TM</i> ). </p>
+      </div><!-- /.col-lg-4 -->
+      <div class="col-lg-4">
+        <img class="rounded-circle" src="img/assets/conqueror.svg" alt="Icon #3" width="140" height="140">
+        <h2>Quests</h2>
+        <p>Complete Quests for mysterious figures, gods and anything in between. Unlock new locations, quests and abilities by completing quests. </p>
+      </div><!-- /.col-lg-4 -->
+    </div><!-- /.row -->
+
+
+    <!-- START THE FEATURETTES -->
+    <hr class="featurette-divider">
+    <div class="row featurette">
+      <div class="col-md-7">
+        <h2 class="featurette-heading">The premier text-based MMO. <span class="text-muted">It'll blow your mind.</span></h2>
+        <p class="lead">WebMMO is a free-to-play (with no ads or in-game purchases) browser-based MMO. Create a Hero and start battling enemies, exploring countless locations, completing quests, acquiring epic loot, gain glory in PvP combat, rank highest on the leaderboards and so much more.</p>
+      </div>
+      <div class="col-md-5">
+        <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="500x500" src="data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22500%22%20height%3D%22500%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20500%20500%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_17a3429cf8c%20text%20%7B%20fill%3A%23AAAAAA%3Bfont-weight%3Abold%3Bfont-family%3AArial%2C%20Helvetica%2C%20Open%20Sans%2C%20sans-serif%2C%20monospace%3Bfont-size%3A25pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_17a3429cf8c%22%3E%3Crect%20width%3D%22500%22%20height%3D%22500%22%20fill%3D%22%23EEEEEE%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%22185.1171875%22%20y%3D%22261.1%22%3E500x500%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E" data-holder-rendered="true" style="width: 500px; height: 500px;">
+      </div>
+    </div>
+
+    <hr class="featurette-divider">
+
+    <div class="row featurette">
+      <div class="col-md-7 order-md-2">
+        <h2 class="featurette-heading">Oh yeah, it's that good. <span class="text-muted">See for yourself.</span></h2>
+        <p class="lead">Place holder blabbering until I find the time to write content here. Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Praesent commodo cursus magna, vel scelerisque nisl consectetur. Fusce dapibus, tellus ac cursus commodo.</p>
+      </div>
+      <div class="col-md-5 order-md-1">
+        <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="500x500" src="data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22500%22%20height%3D%22500%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20500%20500%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_17a3429cf8c%20text%20%7B%20fill%3A%23AAAAAA%3Bfont-weight%3Abold%3Bfont-family%3AArial%2C%20Helvetica%2C%20Open%20Sans%2C%20sans-serif%2C%20monospace%3Bfont-size%3A25pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_17a3429cf8c%22%3E%3Crect%20width%3D%22500%22%20height%3D%22500%22%20fill%3D%22%23EEEEEE%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%22185.1171875%22%20y%3D%22261.1%22%3E500x500%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E" data-holder-rendered="true" style="width: 500px; height: 500px;">
+      </div>
+    </div>
+
+    <hr class="featurette-divider">
+
+    <div class="row featurette">
+      <div class="col-md-7">
+        <h2 class="featurette-heading">And lastly, this one. <span class="text-muted">Checkmate.</span></h2>
+        <p class="lead">Place holder blabbering until I find the time to write content here. Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Praesent commodo cursus magna, vel scelerisque nisl consectetur. Fusce dapibus, tellus ac cursus commodo.</p>
+      </div>
+      <div class="col-md-5">
+        <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="500x500" src="data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22500%22%20height%3D%22500%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20500%20500%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_17a3429cf8d%20text%20%7B%20fill%3A%23AAAAAA%3Bfont-weight%3Abold%3Bfont-family%3AArial%2C%20Helvetica%2C%20Open%20Sans%2C%20sans-serif%2C%20monospace%3Bfont-size%3A25pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_17a3429cf8d%22%3E%3Crect%20width%3D%22500%22%20height%3D%22500%22%20fill%3D%22%23EEEEEE%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%22185.1171875%22%20y%3D%22261.1%22%3E500x500%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E" data-holder-rendered="true" style="width: 500px; height: 500px;">
+      </div>
+    </div>
+
+    <hr class="featurette-divider">
+
+    <!-- /END THE FEATURETTES -->
+    </div>
+  </div>
+
+  <footer class="footer mt-auto py-3 bg-light fixed-bottom">
+    <div class="container">
+      <span class="text-muted"><i><small>WebMMO - All Rights Reserved</small></i></span>
+    </div>
+  </footer>
 
 </body>
 

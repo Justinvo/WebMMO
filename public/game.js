@@ -955,13 +955,18 @@ function awardLoot(id) {
     function getHeroDefense() {
       let stats = heroData.equipment;
       let defensebuff = 0;
-      let keys = Object.keys(stats)
-      keys.forEach((element) => {
-        let object = stats[element]
-        let stat = heroData.inventory[object].stat
-        if(stat.startsWith("def")) defensebuff += Number(stat.split('def+')[1]);
-      })
-      return Number(defensebuff);
+      if(stats) {
+        let keys = Object.keys(stats)
+        keys.forEach((element) => {
+          let object = stats[element]
+          let stat = heroData.inventory[object].stat
+          if(stat.startsWith("def")) defensebuff += Number(stat.split('def+')[1]);
+          return Number(defensebuff);
+        })
+        return 0;
+      }
+
+
   }
 
   function buyItem(item, cost) {

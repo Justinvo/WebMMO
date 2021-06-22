@@ -50,9 +50,9 @@ function getUiConfig() {
         }
       ],
       // Terms of service url.
-      'tosUrl': 'https://www.google.com',
+      'tosUrl': 'https://www.WebMMO.app/tos.html',
       // Privacy policy url.
-      'privacyPolicyUrl': 'https://www.google.com',
+      'privacyPolicyUrl': 'https://www.WebMMO.app/privacy.html',
       'credentialHelper': CLIENT_ID && CLIENT_ID != '215097629690-4pfp9duvfjepn9scpoac943t393l73bt.apps.googleusercontent.com' ?
           firebaseui.auth.CredentialHelper.GOOGLE_YOLO :
           firebaseui.auth.CredentialHelper.NONE
