@@ -409,10 +409,10 @@ function addItemToInventory(id, quantity) {
         //If we have no inventory, add it.
         if (!doc.data().inventory) {
           let object = { quantity: Number(quantity), action: item.action, tooltip: item.tooltip, sellable: item.sellable, value: item.value, stat: item.stat };
+          inventoryObj = {[id]: object}
           object = prepObject(object);
-          let map = { [id]: object };
-          return playerRef.update({
-            inventory: map
+            return playerRef.update({
+            inventory: inventoryObj
           });
         }
         //If we have an inventory, first check if we already have this item.
@@ -423,7 +423,7 @@ function addItemToInventory(id, quantity) {
             if(Number((doc.data().inventory[id].quantity) + Number(quantity)) < 1) {
               let map = doc.data().inventory;
               delete map.id;
-              return playerRef.update({
+                return playerRef.update({
                 inventory: map
               });
             }
@@ -431,7 +431,7 @@ function addItemToInventory(id, quantity) {
             else {
               let map = doc.data().inventory;
               map[id].quantity = Number(doc.data().inventory[id].quantity) + Number(quantity);
-              return playerRef.update({
+                return playerRef.update({
                 inventory: map
               });
             }
@@ -440,7 +440,7 @@ function addItemToInventory(id, quantity) {
           else {
             let map = doc.data().inventory;
             map[id] = { quantity: Number(quantity), action: item.action, tooltip: item.tooltip, sellable: item.sellable, value: item.value, stat: item.stat };
-            return playerRef.update({
+              return playerRef.update({
               inventory: map
             });
           }
@@ -493,7 +493,7 @@ function addItemToInventory(id, quantity) {
           const xpdata = classdoc.data()[heroclass].xp;
           var level = 1;
           let i = 2;
-          for(i; i < 7; i++)
+          for(i; i < 15; i++)
           {
             if(xpdata[i] <= userdoc.data().xp) {
               level++
@@ -911,11 +911,13 @@ function awardLoot(id) {
       $('#equipment-screen-equipped').html('<ul class="list-group">')
       db.collection('data').doc('items').get().then((doc) => {
         let equipped = heroData.equipment;
-        let keys = Object.keys(equipped)
-        let items = doc.data()
-        keys.forEach((element) => {
-          $('#equipment-screen-equipped').append(`<li class="list-group-item"><span class="badge bg-primary">${items[equipped[element]].category}</span> ${equipped[element]}  <span class="badge bg-primary">${items[equipped[element]].stat}</span></li>`)
-        })
+        if(equipped) {
+          let keys = Object.keys(equipped)
+          let items = doc.data()
+          keys.forEach((element) => {
+            $('#equipment-screen-equipped').append(`<li class="list-group-item"><span class="badge bg-primary">${items[equipped[element]].category}</span> ${equipped[element]}  <span class="badge bg-primary">${items[equipped[element]].stat}</span></li>`)
+          })
+        }
       })
     }
 
@@ -964,12 +966,10 @@ function awardLoot(id) {
           let object = stats[element]
           let stat = heroData.inventory[object].stat
           if(stat.startsWith("def")) defensebuff += Number(stat.split('def+')[1]);
-          return Number(defensebuff);
         })
-        return 0;
+        return Number(defensebuff);
       }
-
-
+      return Number(0);
   }
 
   function buyItem(item, cost) {
