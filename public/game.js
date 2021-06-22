@@ -250,6 +250,7 @@
         db.collection('data').doc('quests').get().then((doc) => {
           let data = doc.data();
           let keys = Object.keys(doc.data())
+          let questAmount = 0;
           $('#hero-quests-list').html('<p></p>');
           keys.forEach((key) => {
             let quest = data[key];
@@ -264,6 +265,7 @@
               })
               if(hasRequirements)
               {
+                questAmount++
                 let questComplete = false;
                 //Build objective text string
                 let objectives = `<ul class=list-group">`;
@@ -717,14 +719,14 @@ function checkQuestProgress(enemy) {
                   objectKeys.forEach((objectKey) => {
                     if(object[objectKey][enemy]) {
                       //We already had progress so increment this.
-                      object[objectKey][enemy] += 1;
+                      object[objectKey][enemy] = object[objectKey][enemy] + 1;
                       found = true;
                     }
-                    //We had no progress so set this enemy to 1
-                    if(!found) {
-                      object[key] = {[enemy]:1};
-                    }
                   })
+                  //We had no progress so set this enemy to 1
+                  if(!found) {
+                    object[key] = {[enemy]:1};
+                  }
                 }
                 //We had no quest progression at all yet. Create a new object with new data.
                 else {
