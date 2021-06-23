@@ -70,4 +70,6 @@ body, html {
     -webkit-overflow-scrolling: touch;
 }
 
-  
+body #toast-container > div {
+  opacity: 1;
+}
