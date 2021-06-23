@@ -352,6 +352,9 @@
     function displayInventory(inventory) {
       if(inventory) {
         let keys = Object.keys(inventory);
+        //Sort inventory alphabetically, then by category.
+        keys = keys.sort((a, b) => (a > b) ? 1 : -1)
+        keys = keys.sort((a, b) => (inventory[a].category > inventory[b].category) ? 1 : -1)
         //Clear the inventory list first
         $('#hero-inventory-list').html('<p></p>');
         keys.forEach( element => {
