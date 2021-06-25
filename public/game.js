@@ -1153,11 +1153,11 @@ function displayFriends(friends) {
   if(friends) {;
     //Clear the friends list first
     $('#hero-friends-list').html('<p></p>');
+    $('#hero-friends-list').append(`<a class="list-group-item" onClick='showPlayerInfo("${getUserID()}");'>${heroData.name} (<b>you</b>)</a>`); 
     friends.forEach( element => {
       db.collection('users').doc(element).get().then((doc) => {
         $('#hero-friends-list').append(`<a class="list-group-item" onClick='showPlayerInfo("${element}");'>${doc.data().name}</a>`);  
       })
-      
     })
   }
 }
