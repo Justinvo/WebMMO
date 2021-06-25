@@ -48,7 +48,7 @@
       firebase.auth().onAuthStateChanged(user => {
       if (!user) {
         //If the user is not logged in, move to the log-in screen.
-        if(window.location.hostname != "127.0.0.1") window.location = 'index.html';
+        window.location = 'index.html';
       }
       else {
         document.getElementById("user-name").innerText = "Logged in as: " + user.displayName;
@@ -339,6 +339,34 @@
         </div>
       </div>
     </div>
+
+  <!-- Player Info Modal -->
+  <div class="modal fade" id="player-info-screen" tabindex="-1" aria-labelledby="player-info-screen-label" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="player-info-screen-label">Info</h5>
+          <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <h4><div id="player-info-screen-player-name"></div></h4>
+          <hr>
+          <h5><div id="player-info-screen-player-name-about"></div></h5>
+          <div id="player-info-screen-about-player-description"></div>
+          <div id="player-info-screen-about-player-description-button"></div>
+          <p></p>
+          <div id="player-info-screen-about-player-quests"></div>
+          <div class="d-flex justify-content-center">
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
 </body>
 <script src="app.js"></script>
 <script src="game.js"></script>
