@@ -10,6 +10,7 @@
     var classData;
     var locAmountSubscription;
     var loadingScreen;
+    var duelIncoming = false;
 
     //Globals for battle:
     var fightData;
@@ -216,6 +217,25 @@ function pullCharacterInfo() {
       displayFriends(heroData.friends)
       initLocations();
       updateEquippedItems();
+      //Handle incoming duels.
+      if(!duelIncoming && heroData.duel_invite) {
+        duelIncoming = true;
+        showIncomingDuel(heroData.duel_invite);
+      }
+      //Handle cancelled duel on receiving side.
+      if(duelIncoming && !heroData.duel_invite) {
+        duelIncoming = false;
+        (bootstrap.Modal.getInstance(document.getElementById('duel-invite-incoming-screen'))).hide();
+        toastr.warning("The duel invitation was cancelled by the sender", "Duel cancelled.");
+      }
+      //Handle denied duel on sender side.
+      if(heroData.duel_cancelled) {
+        (bootstrap.Modal.getInstance(document.getElementById('duel-invite-screen'))).hide();
+        toastr.success("Duel invitation was declined.", "Duel invitation declined!");
+        db.collection('users').doc(getUserID()).update({
+          duel_cancelled: firebase.firestore.FieldValue.delete()
+        })
+      }
       })
     });
     //Load quests, filter and display.
@@ -490,37 +510,43 @@ showLevelUpScreen(newLevel);
 function initBattle() {
 //Grab data about our fight.
 db.collection('fights').doc(getUserID()).get().then((doc) => {
-  fightData = doc.data();
-  //Set enemy name.
-  document.getElementById('battle-enemy-name').innerText = "Fighting: " + doc.data().enemy;
-})
-//Keep track of the battle-data.
-fightSnapshot = db.collection('fights').doc(getUserID())
-  .onSnapshot((doc) => {
-  //Set health bars
-  const enemyhealth = (doc.data().health_enemy / doc.data().health_enemy_max) * 100;
-  const herohealth = (doc.data().health_hero / doc.data().health_hero_max) * 100;
-  const stamina = (doc.data().stamina / 10) * 100;
-  $('#health-enemy').html(`<div class="progress-bar-striped bg-danger progress-bar-animated" role="progressbar" style="width: ${enemyhealth}%;" aria-valuenow="${enemyhealth}" aria-valuemin="0" aria-valuemax="${doc.data().health_enemy_max}"><div class="text-light">Enemy Health: ${doc.data().health_enemy}/${doc.data().health_enemy_max}</div></div>`);
-  $('#health-hero').html(`<div class="progress-bar-striped bg-success progress-bar-animated" role="progressbar" style="width: ${herohealth}%;" aria-valuenow="${herohealth}" aria-valuemin="0" aria-valuemax="${doc.data().health_hero_max}"><div class="text-light">Hero Health: ${doc.data().health_hero}/${doc.data().health_hero_max}</div></div>`);
-  $('#stamina-hero').html(`<div class="progress-bar-striped bg-warning progress-bar-animated" role="progressbar" style="width: ${stamina}%;" aria-valuenow="${doc.data().stamina}" aria-valuemin="0" aria-valuemax="10"><div class="text-light">Hero Stamina: ${doc.data().stamina}/10</div></div>`);
-  //Set battle-log
-  //Set battle-log
-  const log = doc.data().log;
-  $('#battle-log').html('')
-  log.forEach((element) => {
-    $('#battle-log').append(`<li class='list-group-item'>${element}</li>`);
-  })
-})
-//Setup our ability buttons.
-db.collection('data').doc('stats').get().then((doc) => {
-  db.collection('data').doc('abilities').get().then((abilitydoc) => {
-    let abilities = doc.data()[heroData.class].abilities;
-    $('#ability-container').html('');
-    abilities.forEach((element) => {
-      $('#ability-container').append(`<button class="btn btn-primary" onClick='${abilitydoc.data()[element].action}' type="button"><b>${abilitydoc.data()[element].stamina} Stamina </b>${element}: ${abilitydoc.data()[element].description}</button>`);
+  if (!doc.exists) {
+    console.log("could not find battle log.")
+    initDuel();
+  }
+  else {
+    fightData = doc.data();
+    //Set enemy name.
+    document.getElementById('battle-enemy-name').innerText = "Fighting: " + doc.data().enemy;
+    //Keep track of the battle-data.
+    fightSnapshot = db.collection('fights').doc(getUserID())
+      .onSnapshot((doc) => {
+        //Set health bars
+        const enemyhealth = (doc.data().health_enemy / doc.data().health_enemy_max) * 100;
+        const herohealth = (doc.data().health_hero / doc.data().health_hero_max) * 100;
+        const stamina = (doc.data().stamina / 10) * 100;
+        $('#health-enemy').html(`<div class="progress-bar-striped bg-danger progress-bar-animated" role="progressbar" style="width: ${enemyhealth}%;" aria-valuenow="${enemyhealth}" aria-valuemin="0" aria-valuemax="${doc.data().health_enemy_max}"><div class="text-light">Enemy Health: ${doc.data().health_enemy}/${doc.data().health_enemy_max}</div></div>`);
+        $('#health-hero').html(`<div class="progress-bar-striped bg-success progress-bar-animated" role="progressbar" style="width: ${herohealth}%;" aria-valuenow="${herohealth}" aria-valuemin="0" aria-valuemax="${doc.data().health_hero_max}"><div class="text-light">Hero Health: ${doc.data().health_hero}/${doc.data().health_hero_max}</div></div>`);
+        $('#stamina-hero').html(`<div class="progress-bar-striped bg-warning progress-bar-animated" role="progressbar" style="width: ${stamina}%;" aria-valuenow="${doc.data().stamina}" aria-valuemin="0" aria-valuemax="10"><div class="text-light">Hero Stamina: ${doc.data().stamina}/10</div></div>`);
+        //Set battle-log
+        //Set battle-log
+        const log = doc.data().log;
+        $('#battle-log').html('')
+        log.forEach((element) => {
+          $('#battle-log').append(`<li class='list-group-item'>${element}</li>`);
+        })
+      })
+    //Setup our ability buttons.
+    db.collection('data').doc('stats').get().then((doc) => {
+      db.collection('data').doc('abilities').get().then((abilitydoc) => {
+        let abilities = doc.data()[heroData.class].abilities;
+        $('#ability-container').html('');
+        abilities.forEach((element) => {
+          $('#ability-container').append(`<button class="btn btn-primary" onClick='${abilitydoc.data()[element].action}' type="button"><b>${abilitydoc.data()[element].stamina} Stamina </b>${element}: ${abilitydoc.data()[element].description}</button>`);
+        })
+      })
     })
-  })
+  }
 })
 }
 
@@ -555,6 +581,153 @@ else {
   })
 }
 })
+}
+
+//Init a duel against another player on the battle screen.
+function initDuel() {
+  console.log("initduel called.")
+  let duelID;
+  let duelData;
+  let contestant0data;
+  let contestant1data;
+  let contestant0local;
+  let stats
+  //First grab the stats library.
+  db.collection("data").doc("stats").get().then((doc) => {
+    stats = doc.data()
+  }).then(() => {
+  //Find our duel
+  db.collection('duels').get().then((docs) => {
+    docs.forEach((doc) => {
+      contestants = doc.data().contestants
+      if (contestants.includes(getUserID())) {
+        duelID = doc.id;
+        duelData = doc.data();
+        contestant0local = (contestants[0] == getUserID());
+      }
+    })
+    //If we are not involved in a duel (and not a battle), leave back to the main screen.
+    if (!duelID) window.location = 'game.html';
+
+    //Keep track of the battle-data.
+    fightSnapshot = db.collection('duels').doc(duelID)
+      .onSnapshot((doc) => {
+        duelData = doc.data();
+        //const stamina = (doc.data().stamina / 10) * 100;
+        //$('#stamina-hero').html(`<div class="progress-bar-striped bg-warning progress-bar-animated" role="progressbar" style="width: ${stamina}%;" aria-valuenow="${doc.data().stamina}" aria-valuemin="0" aria-valuemax="10"><div class="text-light">Hero Stamina: ${doc.data().stamina}/10</div></div>`);
+        //Set battle-log
+        const log = duelData.log;
+        $('#battle-log').html('')
+        log.forEach((element) => {
+          $('#battle-log').append(`<li class='list-group-item'>${element}</li>`);
+        })
+      })
+    //Keep a snapshot for both players of the contestants array.
+    db.collection('users').doc(duelData.contestants[0])
+      .onSnapshot((doc) => {
+        contestant0data = doc.data();
+        if(contestant0local) {
+          let maxHealth = (Number(stats[doc.data().class].extra_health_per_level) * Number(doc.data().level)) + Number(stats[doc.data().class].max_health_base);
+          let currentHealth = doc.data().health_current;
+          let heroHealth = (currentHealth / maxHealth) * 100;
+          $('#health-hero').html(`<div class="progress-bar-striped bg-success progress-bar-animated" role="progressbar" style="width: ${heroHealth}%;" aria-valuenow="${heroHealth}" aria-valuemin="0" aria-valuemax="${maxHealth}"><div class="text-light">Hero Health: ${currentHealth}/${maxHealth}</div></div>`);
+        }
+        else {
+          let maxHealth = (Number(stats[doc.data().class].extra_health_per_level) * Number(doc.data().level)) + Number(stats[doc.data().class].max_health_base);
+          let currentHealth = doc.data().health_current;
+          let heroHealth = (currentHealth / maxHealth) * 100;
+          $('#health-enemy').html(`<div class="progress-bar-striped bg-danger progress-bar-animated" role="progressbar" style="width: ${heroHealth}%;" aria-valuenow="${heroHealth}" aria-valuemin="0" aria-valuemax="${maxHealth}"><div class="text-light">Enemy Health: ${currentHealth}/${maxHealth}</div></div>`);
+        }
+      })
+    db.collection('users').doc(duelData.contestants[1])
+      .onSnapshot((doc) => {
+        contestant1data = doc.data();
+        if(contestant0local) {
+          let maxHealth = (Number(stats[doc.data().class].extra_health_per_level) * Number(doc.data().level)) + Number(stats[doc.data().class].max_health_base);
+          let currentHealth = doc.data().health_current;
+          let heroHealth = (currentHealth / maxHealth) * 100;
+          $('#health-enemy').html(`<div class="progress-bar-striped bg-danger progress-bar-animated" role="progressbar" style="width: ${heroHealth}%;" aria-valuenow="${heroHealth}" aria-valuemin="0" aria-valuemax="${maxHealth}"><div class="text-light">Enemy Health: ${currentHealth}/${maxHealth}</div></div>`);
+          }
+        else {
+          let maxHealth = (Number(stats[doc.data().class].extra_health_per_level) * Number(doc.data().level)) + Number(stats[doc.data().class].max_health_base);
+          let currentHealth = doc.data().health_current;
+          let heroHealth = (currentHealth / maxHealth) * 100;
+          $('#health-hero').html(`<div class="progress-bar-striped bg-success progress-bar-animated" role="progressbar" style="width: ${heroHealth}%;" aria-valuenow="${heroHealth}" aria-valuemin="0" aria-valuemax="${maxHealth}"><div class="text-light">Hero Health: ${currentHealth}/${maxHealth}</div></div>`);
+        }
+      })
+
+  })
+  //Setup our ability buttons.
+  db.collection('data').doc('stats').get().then((doc) => {
+    db.collection('data').doc('abilities').get().then((abilitydoc) => {
+      let abilities = doc.data()[heroData.class].abilities;
+      $('#ability-container').html('');
+      abilities.forEach((element) => {
+        $('#ability-container').append(`<button class="btn btn-primary" onClick='${abilitydoc.data()[element].action}' type="button"><b>${abilitydoc.data()[element].stamina} Stamina </b>${element}: ${abilitydoc.data()[element].description}</button>`);
+      })
+    })
+  })
+})
+}
+
+  
+//Accept a duel and add the entry on the server.
+function acceptDuel(sender) {
+toggleLoadingState(true);
+  db.collection('duels').add({
+    contestants: [getUserID(), sender],
+    log: ["<b>1:</b> The battle starts!"]
+  }).then(() => {
+    window.location = 'battle.html'
+  })
+}
+
+//Send an invite to another player that you want to duel them.
+function sendDuelInvite(enemy) {
+  (bootstrap.Modal.getInstance(document.getElementById('player-info-screen'))).hide();
+  toggleLoadingState(true);
+  if(getHealth().current <= 0) {
+    toastr.warning("You can't start a duel while being unconscious. Regain health by paying a cleric.", "Hold up there...");
+    return toggleLoadingState(false);
+  }
+  else {
+    db.collection('users').doc(enemy).update({
+      duel_invite: getUserID()
+    }).then(() => {
+      toggleLoadingState(false);
+      showAwaitingDuel(enemy);
+    })
+  }
+
+}
+
+//accept an invitation to a duel.
+function acceptDuelInvite(sender) {
+  acceptDuel(sender);
+}
+
+//Deny an invitation to a duel.
+function denyDuelInvite(sender) {
+  duelIncoming = false;
+  db.collection('users').doc(getUserID()).update({
+    duel_invite: firebase.firestore.FieldValue.delete()
+  }).then(() => {
+    (bootstrap.Modal.getInstance(document.getElementById('duel-invite-incoming-screen'))).hide();
+    toastr.error("Duel invitation was denied.", "Duel denied!");
+    db.collection('users').doc(sender).update({
+      duel_cancelled: true
+    })
+  })
+}
+
+//Cancel a pending invite
+function cancelDuelInvite(enemy) {
+  db.collection('users').doc(enemy).update({
+    duel_invite: firebase.firestore.FieldValue.delete()
+  }).then(() => {
+    (bootstrap.Modal.getInstance(document.getElementById('duel-invite-screen'))).hide();
+    toastr.success("Duel invitation was cancelled.", "Duel cancelled!");
+  })
 }
 
 //Flee or end a battle
@@ -923,13 +1096,46 @@ db.collection('users').doc(userID).get().then((doc) => {
   let playerQuests = `<b>Completed Quests:</b> <li class="list-group">${completedQuests}</li>`
   $('#player-info-screen-player-name').html(introString)
   $('#player-info-screen-player-name-about').html(`About ${data.name}:`);
-  $('#player-info-screen-about-player-description').html(playerData)
-  $('#player-info-screen-about-player-quests').html(playerQuests)
-
+  $('#player-info-screen-about-player-description').html(playerData);
+  $('#player-info-screen-about-player-quests').html(playerQuests);
+  $('#player-info-screen-about-player-duel').html(`<hr>
+  <button type="button" onClick='sendDuelInvite("${userID}")' class="btn btn-danger">[EXPERIMENTAL] Invite to Duel!</button>`);
 
   let playerInfoScreen = new bootstrap.Modal(document.getElementById('player-info-screen'))
   playerInfoScreen.show(); 
 })
+}
+
+// Show that an invitation was sent to a user.
+function showAwaitingDuel(userID) {
+  db.collection('users').doc(userID).get().then((doc) => {
+    let data = doc.data();
+    let playerDescription = data.name;
+    let playerData = `<b>Waiting for ${playerDescription} to respond to your invitation...`
+    $('#duel-invite-screen-description').html(playerData);
+    $('#duel-invite-screen-cancel').html(`<button type="button" onClick='cancelDuelInvite("${userID}")' class="btn btn-danger"><i>Cancel Duel Invite</i></button>`)
+
+    let duelInviteScreen = new bootstrap.Modal(document.getElementById('duel-invite-screen'), {
+      keyboard: false, backdrop: "static"
+    })
+    duelInviteScreen.show(); 
+  })
+}
+
+// Show that an invitation just came in.
+function showIncomingDuel(sender) {
+  db.collection('users').doc(sender).get().then((doc) => {
+    let data = doc.data();
+    let playerData = `<b>${data.name} has sent you an invite to duel. They are a Level ${data.level} ${data.class}.`
+    $('#duel-invite-incoming-screen-description').html(playerData);
+    $('#duel-invite-incoming-screen-accept').html(`<button type="button" onClick='acceptDuelInvite("${sender}")' class="btn btn-success"><i>Accept Duel Invite</i></button>`)
+    $('#duel-invite-incoming-screen-deny').html(`<button type="button" onClick='denyDuelInvite("${sender}")' class="btn btn-danger"><i>Decline Duel Invite</i></button>`)
+
+    let duelInviteScreen = new bootstrap.Modal(document.getElementById('duel-invite-incoming-screen'), {
+      keyboard: false, backdrop: "static"
+    })
+    duelInviteScreen.show(); 
+  })
 }
 
 ///////////////////////////////
@@ -1150,10 +1356,10 @@ function removeFriend(userID) {
 
 //Display the users friends
 function displayFriends(friends) {
-  if(friends) {;
-    //Clear the friends list first
-    $('#hero-friends-list').html('<p></p>');
-    $('#hero-friends-list').append(`<a class="list-group-item" onClick='showPlayerInfo("${getUserID()}");'>${heroData.name} (<b>you</b>)</a>`); 
+  //Clear the friends list first
+  $('#hero-friends-list').html('<p></p>');
+  $('#hero-friends-list').append(`<a class="list-group-item" onClick='showPlayerInfo("${getUserID()}");'>${heroData.name} (<b>you</b>)</a>`); 
+  if(friends) {
     friends.forEach( element => {
       db.collection('users').doc(element).get().then((doc) => {
         $('#hero-friends-list').append(`<a class="list-group-item" onClick='showPlayerInfo("${element}");'>${doc.data().name}</a>`);  

@@ -56,9 +56,6 @@
         db.collection("users").doc(getUserID()).get().then((doc) => {
           if(!doc.data()) window.location = 'hero.html'
           if(!doc.data().name) window.location = 'name.html'
-            db.collection("fights").doc(getUserID()).get().then((doc) => {
-              if(!doc.data()) window.location = 'game.html'
-            })
         })
         pullCharacterInfo();
         initBattle();

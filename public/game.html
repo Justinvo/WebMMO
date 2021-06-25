@@ -234,6 +234,7 @@
           <p></p>
           <h5><b>Upcoming Features:</b></h5>
           <p></p>
+          <li class="list-group-item">PvP</li>
           <li class="list-group-item">Player-driven Marketplace!</li>
           <li class="list-group-item">New Content!</li>
           <p></p>
@@ -365,10 +366,49 @@
           <p></p>
           <div id="player-info-screen-about-player-quests"></div>
           <div id="player-info-screen-about-friend"></div>
+          <div id="player-info-screen-about-player-duel"></div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Duel Invite Sent Screen -->
+  <div class="modal fade" id="duel-invite-screen" tabindex="-1" aria-labelledby="duel-invite-screen-label" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="duel-invite-screen-label">Duel Invitation Sent, waiting...</h5>
+        </div>
+        <div class="modal-body">
+          <div id="duel-invite-screen-description"></div>
+          <hr>
+          <div class="spinner-grow text-primary" role="status">
+            <span class="visually-hidden">Waiting for response.</span>
+          </div>
+          <hr>
+          <div id="duel-invite-screen-cancel"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- Duel Invite Incoming Screen -->
+    <div class="modal fade" id="duel-invite-incoming-screen" tabindex="-1" aria-labelledby="duel-invite-incoming-screen-label" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="duel-invite-incoming-screen-label">You received an invitation to duel!</h5>
+          </div>
+          <div class="modal-body">
+            <div id="duel-invite-incoming-screen-description"></div>
+            <hr>
+            <div id="duel-invite-incoming-screen-accept"></div>
+            <p></p>
+            <div id="duel-invite-incoming-screen-deny"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
 
 </body>
