@@ -217,6 +217,15 @@ function pullCharacterInfo() {
       displayFriends(heroData.friends)
       initLocations();
       updateEquippedItems();
+      //Handle incoming direct message
+      if(heroData.direct_message) {
+        let message = `Message from ${heroData.direct_message_sender}: ${heroData.direct_message}`
+        toastr.success(message, "Direct Message Received!")
+        db.collection('users').doc(getUserID()).update({
+          direct_message: firebase.firestore.FieldValue.delete(),
+          direct_message_sender: firebase.firestore.FieldValue.delete()
+        })
+      }
       //Handle incoming duels.
       if(!duelIncoming && heroData.duel_invite) {
         duelIncoming = true;
@@ -1084,6 +1093,9 @@ db.collection('users').doc(userID).get().then((doc) => {
       $('#player-info-screen-about-friend').html(`<hr>
       <button type="button" onClick='removeFriend("${userID}")' class="btn btn-danger">Unfriend</button>
       `)
+      $('#player-info-screen-about-player-message').html(`
+      <hr>
+      <button type="button" onClick='composeDirectMessage("${userID}")' class="btn btn-primary">Send Direct Message</button>`)
     }
   }
   else {
@@ -1371,4 +1383,38 @@ function displayFriends(friends) {
 function cancelEditingProfile() {
   (bootstrap.Modal.getInstance(document.getElementById('player-info-screen'))).hide();
   showPlayerInfo(getUserID()); 
+}
+
+//Send a direct message to someone.
+function sendDirectMessage(receipent, message) {
+  db.collection('users').doc(receipent).update({
+    direct_message: message,
+    direct_message_sender: heroData.name
+  }, {merge: true});
+  toastr.success("Message has been sent!", "Sent!");
+  cancelDirectMessage();
+}
+
+function composeDirectMessage(sender) {
+  let message = $('#playerMessageInput').val();
+  $('#player-info-screen-about-player-message').html(`
+  <div class="mb-3">
+    <label for="playerMessageInput" class="form-label">Message:</label>
+    <input type="text" class="form-control" id="playerMessageInput" placeholder="">
+  </div>
+  <div class="mb-3">
+    <button type="button" onClick='cancelDirectMessage()' class="btn btn-link">Cancel</button>
+    <button type="button" onClick='sendDirectMessage("${sender}", getMessageInput())' class="btn btn-link">Submit</button>
+  </div>
+  `)
+}
+
+function cancelDirectMessage() {
+  $('#player-info-screen-about-friend').html(`<hr>
+      <button type="button" onClick='addFriend("${userID}")' class="btn btn-success">Add friend</button>
+      `)
+}
+
+function getMessageInput() {
+  return $('#playerMessageInput').val()
 }
