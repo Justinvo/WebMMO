@@ -1104,7 +1104,7 @@ function editPlayerInfoDescription() {
     <input type="text" class="form-control" id="playerDescriptionInput" placeholder="">
   </div>
   <div class="mb-3">
-    <button type="button" onClick='showPlayerInfo(getUserID())' class="btn btn-link">Cancel</button>
+    <button type="button" onClick='cancelEditingProfile()' class="btn btn-link">Cancel</button>
     <button type="button" onClick='submitPlayerInfoDescription()' class="btn btn-link">Submit</button>
   </div>
   `)
@@ -1160,4 +1160,9 @@ function displayFriends(friends) {
       })
     })
   }
+}
+
+function cancelEditingProfile() {
+  (bootstrap.Modal.getInstance(document.getElementById('player-info-screen'))).hide();
+  showPlayerInfo(getUserID()); 
 }
