@@ -213,6 +213,7 @@ function pullCharacterInfo() {
       heroHealthText.innerText = `${getHealth().current} / ${getHealth().max} `
       heroXPText.innerText = `${getXP().current} / ${getXP().next} `
       displayInventory(heroData.inventory);
+      displayFriends(heroData.friends)
       initLocations();
       updateEquippedItems();
       })
@@ -896,6 +897,26 @@ db.collection('users').doc(userID).get().then((doc) => {
   else {
     $('#player-info-screen-about-player-description-button').html(``);
   }
+
+  //Can't befriend yourself, atleast not in the game.
+  if(userID != getUserID()) {
+    //Not friends yet? This could be the start of a beautiful friend-ship.
+    if(!heroData.friends || !((heroData.friends).includes(userID))) {
+      $('#player-info-screen-about-friend').html(`<hr>
+      <button type="button" onClick='addFriend("${userID}")' class="btn btn-success">Add friend</button>
+      `)
+    }
+    //Already friends? Change button to unfriend.
+    else if((heroData.friends).includes(userID)) {
+      $('#player-info-screen-about-friend').html(`<hr>
+      <button type="button" onClick='removeFriend("${userID}")' class="btn btn-danger">Unfriend</button>
+      `)
+    }
+  }
+  else {
+    $('#player-info-screen-about-friend').html('')
+  }
+
   let playerDescription = data.description;
   if(!playerDescription) playerDescription = "This player has not written a description yet."
   let playerData = `<b>Description:</b> ${playerDescription}`
@@ -1097,4 +1118,46 @@ function submitPlayerInfoDescription() {
   }, {merge: true});
 (bootstrap.Modal.getInstance(document.getElementById('player-info-screen'))).hide();
 showPlayerInfo(getUserID()); 
+}
+
+//Add a friend to your friendslist. Also adds you to their friends list.
+function addFriend(userID) {
+  db.collection('users').doc(getUserID()).update({
+    friends: firebase.firestore.FieldValue.arrayUnion(userID)
+  }).then(() => {
+    db.collection('users').doc(userID).update({
+      friends: firebase.firestore.FieldValue.arrayUnion(getUserID())
+    }).then(() => {
+      (bootstrap.Modal.getInstance(document.getElementById('player-info-screen'))).hide();
+      showPlayerInfo(userID); 
+    })
+  })
+}
+
+//Remove a friend from your friendslist. Also removes you from their friends list.
+function removeFriend(userID) {
+  db.collection('users').doc(getUserID()).update({
+    friends: firebase.firestore.FieldValue.arrayRemove(userID)
+  }).then(() => {
+    db.collection('users').doc(userID).update({
+      friends: firebase.firestore.FieldValue.arrayRemove(getUserID())
+    }).then(() => {
+      (bootstrap.Modal.getInstance(document.getElementById('player-info-screen'))).hide();
+      showPlayerInfo(userID); 
+    })
+  })
+}
+
+//Display the users friends
+function displayFriends(friends) {
+  if(friends) {;
+    //Clear the friends list first
+    $('#hero-friends-list').html('<p></p>');
+    friends.forEach( element => {
+      db.collection('users').doc(element).get().then((doc) => {
+        $('#hero-friends-list').append(`<a class="list-group-item" onClick='showPlayerInfo("${element}");'>${doc.data().name}</a>`);  
+      })
+      
+    })
+  }
 }

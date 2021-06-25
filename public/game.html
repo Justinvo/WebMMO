@@ -80,6 +80,7 @@
         <div class="nav nav-tabs" id="nav-tab" role="tablist">
           <button class="nav-link active" id="nav-info-hero-tab" data-bs-toggle="tab" data-bs-target="#nav-info-hero" type="button" role="tab" aria-controls="nav-info-hero" aria-selected="true">Hero Info</button>
           <button class="nav-link" id="nav-info-inventory-tab" data-bs-toggle="tab" data-bs-target="#nav-info-inventory" type="button" role="tab" aria-controls="nav-info-inventory" aria-selected="false">Inventory</button>
+          <button class="nav-link" id="nav-info-friends-tab" data-bs-toggle="tab" data-bs-target="#nav-info-friends" type="button" role="tab" aria-controls="nav-info-friends" aria-selected="false">Friends</button>
         </div>
       </nav>
       <div class="tab-content" id="nav-tabContent">
@@ -118,6 +119,13 @@
           <button type="button" onClick="showEquipmentScreen()" class="btn btn-primary">View Equipment</button>
           <p></p>
           <li class="list-group-item"><ul id="hero-inventory-list" class="list-group"></ul></li>
+        </div>
+        <!-- Friends -->
+        <div class="tab-pane fade" id="nav-info-friends" role="tabpanel" aria-labelledby="nav-info-friends-tab">
+          <p></p>
+          <h5>Friends: </h5>
+          <p></p>
+          <li class="list-group-item"><ul id="hero-friends-list" class="list-group"></ul></li>
         </div>
       </div>
     </div>
@@ -358,9 +366,7 @@
           <div id="player-info-screen-about-player-description-button"></div>
           <p></p>
           <div id="player-info-screen-about-player-quests"></div>
-          <div class="d-flex justify-content-center">
-
-          </div>
+          <div id="player-info-screen-about-friend"></div>
         </div>
       </div>
     </div>
